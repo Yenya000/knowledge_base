@@ -1,0 +1,14 @@
+Как запустить бэкенд локально?
+1. Установите PostgreSQL и Node.js.
+2. Создайте базу данных `oblivion_db` в pgAdmin.
+3. В папке `backend` выполните `npm install`.
+4. Запустите сервер: `node index.js`.
+5. Сервер будет доступен на http://localhost:3000.
+
+Все npm-пакеты, которые установила
+npm init -y                          # создание package.json
+npm install express                  # веб-сервер
+npm install pg                       # драйвер PostgreSQL
+npm install cors                     # для кросс-доменных запросов
+npm install dotenv                   # переменные окружения (пока не используется, но пригодится)
+npm install uuid                     # генерация UUID (пока не используется, можно оставить)
