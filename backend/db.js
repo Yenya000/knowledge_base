@@ -4,7 +4,7 @@ const pool = new Pool({
     user: 'postgres',
     host: 'localhost',
     database: 'oblivion_db',
-    password: '123123',   // твой пароль
+    password: '5262W6W3',
     port: 5432,
 });
 
