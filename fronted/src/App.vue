@@ -14,7 +14,7 @@
     </nav>
 
     <main style="padding: 0 20px;">
-      <router-vue />
+      <router-view />
     </main>
   </div>
 </template>
