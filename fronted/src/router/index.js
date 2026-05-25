@@ -1,19 +1,65 @@
-import { createRouter, createWebHistory } from 'vue-router';
-//Импорт страниц
-import Home from '../views/Home.vue';
-import Profile from '../views/Profile.vue';
-import Admin from '../views/Admin.vue';
+import { createRouter, createWebHistory } from 'vue-router'
+
+// Импортируем компоненты строго по именам файлов из твоей папки views
+import Home from '../views/Home.vue'
+import Login from '../views/Login.vue'
+import Admin from '../views/Admin.vue'
+import Profile from '../views/Profile.vue'
 
 const routes = [
-    {path: "/", name: 'Home', component: Home},
-    {path: "/profile", name: 'profile', component: Profile},
-    {path: "/admin", name: 'Admin', component: Admin}
-];
+  {
+    path: '/',
+    name: 'home',
+    component: Home,
+    meta: { requiresAuth: true } // Закрываем главную по плану (нужен токен)
+  },
+  {
+    path: '/login',
+    name: 'login',
+    component: Login,
+    meta: { guestOnly: true }
+  },
+  {
+    path: '/profile',
+    name: 'profile',
+    component: Profile,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/admin',
+    name: 'admin',
+    component: Admin,
+    meta: { requiresAuth: true, requiresAdmin: true } // Защита админки
+  }
+]
 
 const router = createRouter({
-    history:  createWebHistory(),
-    routes
-});
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes
+})
 
-export default router;
+// ГЛОБАЛЬНЫЙ НАВИГАЦИОННЫЙ ГВАРД ИЗ ПЛАНА
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+  const userRole = localStorage.getItem('userRole')
 
+  // 1. Если роут требует авторизации, а токена нет — отправляем на вход
+  if (to.meta.requiresAuth && !token) {
+    return next({ name: 'login' })
+  }
+
+  // 2. Если пользователь уже авторизован и идет на страницу логина — перекидываем в профиль
+  if (to.meta.guestOnly && token) {
+    return next({ name: 'profile' })
+  }
+
+  // 3. Если это админка, а роль не admin — разворачиваем в профиль
+  if (to.meta.requiresAdmin && userRole !== 'admin') {
+    alert('Доступ ограничен. Требуются права администратора.')
+    return next({ name: 'profile' })
+  }
+
+  next()
+})
+
+export default router
