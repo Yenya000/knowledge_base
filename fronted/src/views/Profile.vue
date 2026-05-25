@@ -1,105 +1,212 @@
 <template>
-  <div class="profile-container">
+  <div class="profile-layout">
+    
     <div class="profile-card">
-        //потом это все подключим данные таблиц
-      <h2>Личный кабинет сотрудника</h2>
-      <p><strong>Имя:</strong> Анна (Team Lead)</p>
-      <p><strong>Роль в компании:</strong> Разработчик / Тимлид</p>
-      <p><strong>Департамент:</strong> IT-отдел</p>
+      <div class="avatar-container">
+        <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Annamiruk" alt="Avatar" class="avatar" />
+      </div>
+      <!-- потом вся инфа должна быть взята из таблиц  -->
+      <h2>Анна (miruk-lead)</h2>
+      <p class="role-badge">Team Lead / Frontend Developer</p>
+      
+      <hr class="divider" />
+      
+      <div class="user-info">
+        <div class="info-item">
+          <strong>Департамент:</strong> <span>IT-разработка</span>
+        </div>
+        <div class="info-item">
+          <strong>Email:</strong> <span>teamlead@oblivion.corp</span>
+        </div>
+        <div class="info-item">
+          <strong>Telegram:</strong> <span>@miruk_lead</span>
+        </div>
+        <div class="info-item">
+          <strong>Дата вступления:</strong> <span>18.05.2026</span>
+        </div>
+      </div>
     </div>
 
-    <div class="form-section">
-      <h3>💡 Оставить предложение</h3>
-      <form @submit.prevent="sendSuggestion">
-        <textarea 
-          v-model="suggestionText" 
-          placeholder="Напишите вашу идею по улучшению компании..."
-          rows="4"
-        ></textarea>
-        <button type="submit">Отправить идею</button>
-      </form>
+    <div class="forms-container">
+      
+      <div class="form-box">
+        <h3>🚀 Рационализаторское предложение</h3>
+        <p class="form-desc">Поделитесь идеей, как улучшить базу знаний OBLIVION.</p>
+        <form @submit.prevent="sendSuggestion">
+          <textarea v-model="suggestionText" placeholder="Опишите вашу идею во всех деталях..." required></textarea>
+          <button type="submit" class="btn btn-primary">Отправить идею</button>
+        </form>
+      </div>
+
+      <div class="form-box">
+        <h3>🔒 Конфиденциальная жалоба</h3>
+        <p class="form-desc">Прямой анонимный канал для сообщения о проблемах в отделе.</p>
+        <form @submit.prevent="sendComplaint">
+          <textarea v-model="complaintText" placeholder="Что случилось? (Это улетит напрямую руководству)..." required></textarea>
+          <button type="submit" class="btn btn-danger">Подать жалобу</button>
+        </form>
+      </div>
+
     </div>
 
-    <div class="form-section">
-      <h3>⚠️ Подать жалобу</h3>
-      <form @submit.prevent="sendComplaint">
-        <textarea 
-          v-model="complaintText" 
-          placeholder="Опишите проблему или жалобу конфиденциально..."
-          rows="4"
-        ></textarea>
-        <button type="submit" class="btn-danger">Отправить жалобу</button>
-      </form>
-    </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 
-//реактивные переменные куда будет записываться текст из полей ввода
 const suggestionText = ref('')
 const complaintText = ref('')
 
-// функция "Отправить идею"
+
 const sendSuggestion = () => {
-  console.log('--- Новое предложение ---')
-  console.log(suggestionText.value)
-  
-  alert('Предложение успешно отправлено (проверь консоль)!')
-  suggestionText.value = ''  // очиска поля после отправки
+  console.log('--- Отправлено предложение ---', suggestionText.value)
+  alert('Ваше предложение успешно зафиксировано!')
+  suggestionText.value = ''
 }
 
-// функция "Отправить жалобу"
 const sendComplaint = () => {
-  console.log('--- Новая жалоба ---')
-  console.log(complaintText.value)
-  
-  alert('Жалоба успешно отправлена (проверь консоль)!')
-  complaintText.value = '' // очискам поля после отправки
+  console.log('--- Отправлена жалоба ---', complaintText.value)
+  alert('Жалоба отправлена. Конфиденциальность гарантирована.')
+  complaintText.value = ''
 }
 </script>
 
 <style scoped>
-/* времемые стили */
-.profile-container {
-  max-width: 600px;
+/* Сетка: делит экран на 2 колонки (1 часть под карточку, 2 части под формы) */
+.profile-layout {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 30px;
+  max-width: 1200px;
   margin: 0 auto;
+  font-family: sans-serif;
+  color: #fff;
 }
-.profile-card, .form-section {
-  background: #2a2a2a;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  border: 1px solid #444;
+
+/* Стили карточки пользователя */
+.profile-card {
+  background-color: #1e1e1e;
+  padding: 30px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  height: fit-content;
 }
+
+.avatar-container {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 20px;
+  background: #333;
+  border-radius: 50%;
+  padding: 10px;
+  border: 2px solid #3b82f6;
+}
+
+.avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.role-badge {
+  color: #3b82f6;
+  font-weight: bold;
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+.divider {
+  border: 0;
+  border-top: 1px solid #333;
+  margin: 20px 0;
+}
+
+.user-info {
+  text-align: left;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.info-item strong {
+  color: #aaa;
+}
+
+/* Стили правой части с формами */
+.forms-container {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.form-box {
+  background-color: #1e1e1e;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.form-box h3 {
+  margin-top: 0;
+  margin-bottom: 5px;
+}
+
+.form-desc {
+  color: #aaa;
+  font-size: 13px;
+  margin-bottom: 15px;
+}
+
 textarea {
   width: 100%;
-  background: #333;
-  color: white;
-  border: 1px solid #555;
-  border-radius: 4px;
-  padding: 10px;
-  margin-top: 10px;
+  height: 100px;
+  background-color: #2d2d2d;
+  border: 1px solid #444;
+  border-radius: 6px;
+  color: #fff;
+  padding: 12px;
   box-sizing: border-box;
   resize: vertical;
+  font-family: inherit;
+  margin-bottom: 15px;
 }
-button {
-  background: #3b82f6;
-  color: white;
-  border: none;
+
+textarea:focus {
+  border-color: #3b82f6;
+  outline: none;
+}
+
+/* Кнопки */
+.btn{
   padding: 10px 20px;
-  border-radius: 4px;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
   cursor: pointer;
-  margin-top: 10px;
+  transition: background 0.2s;
 }
-button:hover {
-  background: #2563eb;
+
+.btn-primary {
+  background-color: #3b82f6;
+  color: white;
 }
+
+.btn-primary:hover {
+  background-color: #2563eb;
+}
+
 .btn-danger {
-  background: #ef4444;
+  background-color: #ef4444;
+  color: white;
 }
+
 .btn-danger:hover {
-  background: #dc2626;
+  background-color: #dc2626;
 }
 </style>
