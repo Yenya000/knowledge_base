@@ -39,6 +39,7 @@
 
     <main class="w-full">
       <router-view />
+      
     </main>
 
   </div>
