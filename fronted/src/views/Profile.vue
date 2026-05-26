@@ -1,105 +1,76 @@
 <template>
-  <div class="profile-container">
-    <div class="profile-card">
-        //потом это все подключим данные таблиц
-      <h2>Личный кабинет сотрудника</h2>
-      <p><strong>Имя:</strong> Анна (Team Lead)</p>
-      <p><strong>Роль в компании:</strong> Разработчик / Тимлид</p>
-      <p><strong>Департамент:</strong> IT-отдел</p>
-    </div>
+  <div class="min-h-screen bg-obl-base text-obl-primary p-obl-8 font-sans antialiased flex items-center justify-center">
+    
+    <div class="w-full max-w-md card">
+      <div class="text-center mb-obl-6">
+        <span class="label">// Личный кабинет</span>
+        <h1 class="text-2xl font-extrabold tracking-tight mt-obl-2">ПРОФИЛЬ СОТРУДНИКА</h1>
+        <p class="text-xs font-mono text-obl-muted mt-obl-1">база данных персонала корпорации</p>
+      </div>
 
-    <div class="form-section">
-      <h3>💡 Оставить предложение</h3>
-      <form @submit.prevent="sendSuggestion">
-        <textarea 
-          v-model="suggestionText" 
-          placeholder="Напишите вашу идею по улучшению компании..."
-          rows="4"
-        ></textarea>
-        <button type="submit">Отправить идею</button>
-      </form>
-    </div>
+      <div class="divider mb-obl-6">SYS_STATUS: ACTIVE</div>
 
-    <div class="form-section">
-      <h3>⚠️ Подать жалобу</h3>
-      <form @submit.prevent="sendComplaint">
-        <textarea 
-          v-model="complaintText" 
-          placeholder="Опишите проблему или жалобу конфиденциально..."
-          rows="4"
-        ></textarea>
-        <button type="submit" class="btn-danger">Отправить жалобу</button>
-      </form>
+      <div class="space-y-obl-4 bg-obl-elevated/30 p-obl-4 rounded-obl-sm border border-obl-border-subtle mb-obl-6 font-mono text-sm">
+        <div class="flex justify-between border-b border-obl-border-subtle/40 pb-obl-2">
+          <span class="text-obl-muted">Статус доступа:</span>
+          <span class="text-green-400 font-bold">[AUTHORIZED]</span>
+        </div>
+        
+        <div class="flex justify-between border-b border-obl-border-subtle/40 pb-obl-2">
+          <span class="text-obl-muted">Текущая роль в системе:</span>
+          <span class="text-obl-accent uppercase font-bold">{{ userRole }}</span>
+        </div>
+
+        <div class="flex justify-between">
+          <span class="text-obl-muted">Токен сессии:</span>
+          <span class="text-obl-faint text-xs truncate max-w-[180px]">{{ sessionToken }}</span>
+        </div>
+      </div>
+
+      <div class="space-y-obl-3">
+        <router-link 
+          v-if="userRole === 'admin'" 
+          to="/admin" 
+          class="btn btn-primary btn-full text-center block"
+        >
+          Перейти в Панель управления
+        </router-link>
+
+        <router-link 
+          to="/" 
+          class="btn btn-ghost btn-full text-center block"
+        >
+          Вернуться в Справочный центр
+        </router-link>
+
+        <button 
+          @click="handleLogout" 
+          class="btn btn-subtle btn-full mt-obl-2"
+        >
+          Завершить сессию ([ESC])
+        </button>
+      </div>
+
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-//реактивные переменные куда будет записываться текст из полей ввода
-const suggestionText = ref('')
-const complaintText = ref('')
+const router = useRouter()
 
-// функция "Отправить идею"
-const sendSuggestion = () => {
-  console.log('--- Новое предложение ---')
-  console.log(suggestionText.value)
+// Достаем данные авторизации из localStorage
+const userRole = ref(localStorage.getItem('userRole') || 'user')
+const sessionToken = ref(localStorage.getItem('token') || 'Отсутствует')
+
+// Функция очистки веб-хранилища и редиректа на Login
+const handleLogout = () => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('userRole')
   
-  alert('Предложение успешно отправлено (проверь консоль)!')
-  suggestionText.value = ''  // очиска поля после отправки
-}
-
-// функция "Отправить жалобу"
-const sendComplaint = () => {
-  console.log('--- Новая жалоба ---')
-  console.log(complaintText.value)
-  
-  alert('Жалоба успешно отправлена (проверь консоль)!')
-  complaintText.value = '' // очискам поля после отправки
+  // Выкидываем на форму входа — теперь роутер обратно не пустит
+  router.push('/login')
 }
 </script>
-
-<style scoped>
-/* времемые стили */
-.profile-container {
-  max-width: 600px;
-  margin: 0 auto;
-}
-.profile-card, .form-section {
-  background: #2a2a2a;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  border: 1px solid #444;
-}
-textarea {
-  width: 100%;
-  background: #333;
-  color: white;
-  border: 1px solid #555;
-  border-radius: 4px;
-  padding: 10px;
-  margin-top: 10px;
-  box-sizing: border-box;
-  resize: vertical;
-}
-button {
-  background: #3b82f6;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
-  cursor: pointer;
-  margin-top: 10px;
-}
-button:hover {
-  background: #2563eb;
-}
-.btn-danger {
-  background: #ef4444;
-}
-.btn-danger:hover {
-  background: #dc2626;
-}
-</style>
