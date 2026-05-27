@@ -6,8 +6,8 @@ const JWT_SECRET = 'oblivion_secret_key_2026';
 function authMiddleware(req, res, next) {
     const authHeader = req.headers.authorization;
     
-    if (!authHeader) {
-        return res.status(401).json({ error: 'Нет токена' });
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Отсутствует токен авторизации' });
     }
 
     const token = authHeader.split(' ')[1];

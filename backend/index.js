@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');  
 const jwt = require('jsonwebtoken');
-const pool = require('./db');
+const db = require('./db');
 const articlesRouter = require('./routes/articles');
 const categoriesRouter = require('./routes/categories');
 const { authMiddleware } = require('./middleware/auth');
@@ -18,7 +18,7 @@ app.post('/api/login', async (req, res) => {
     const { employee_id, password } = req.body;
 
     try {
-        const result = await pool.query(
+        const result = await db.query(
             'SELECT id, employee_id, password_hash, role FROM users WHERE employee_id = $1',
             [employee_id]
         );

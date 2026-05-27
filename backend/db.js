@@ -1,19 +1,18 @@
 const { Pool } = require('pg');
 
-// Строка подключения без sslmode — SSL настраиваем отдельно
 const connectionString = 'postgresql://neondb_owner:npg_tLxSP3uwp7lZ@ep-sweet-thunder-ale35vy5.c-3.eu-central-1.aws.neon.tech/neondb';
 
 const pool = new Pool({
     connectionString,
     ssl: {
-        rejectUnauthorized: false   // обязательно для Neon
+        rejectUnauthorized: false
     },
-    idleTimeoutMillis: 20000,       // закрываем простаивающие соединения до того, как Neon их оборвет
+    idleTimeoutMillis: 20000,
     connectionTimeoutMillis: 15000,
     keepAlive: true,
     max: 10,
-    allowExitOnIdle: false,         // не даём процессу завершиться, пока есть соединения
-    reapIntervalMillis: 1000,       // быстрее обнаруживаем мёртвые сокеты
+    allowExitOnIdle: false,
+    reapIntervalMillis: 1000,
 });
 
 pool.on('connect', (client) => {
@@ -26,7 +25,7 @@ pool.on('error', (err) => {
     console.error('Ошибка пула PostgreSQL:', err.message);
 });
 
-// Прогрев пула — первое соединение сразу при старте
+// Прогрев пула
 const warmupPool = async () => {
     try {
         const client = await pool.connect();
@@ -44,11 +43,11 @@ setInterval(async () => {
     try {
         await pool.query('SELECT 1');
     } catch (err) {
-        console.error('Keep-alive запрос не удался:', err.message);
+        // игнорируем
     }
 }, 20000);
 
-// Простая инициализация таблиц и тестовых данных
+// Функция инициализации (оставлена для ручного вызова, сейчас не используется)
 const initializeDatabase = async () => {
     console.log('Запуск инициализации базы данных...');
     const client = await pool.connect().catch(err => {
@@ -84,14 +83,11 @@ const initializeDatabase = async () => {
         `);
         console.log('Таблицы проверены/созданы');
 
-        // Категории
         await client.query(`
             INSERT INTO categories (id, name) VALUES 
                 (1, 'HR'), (2, 'IT'), (3, 'Финансы'), (4, 'Маркетинг')
             ON CONFLICT (id) DO NOTHING;
         `);
-
-        // Администратор (пароль пока открытый, потом заменится хешем)
         await client.query(`
             INSERT INTO users (employee_id, password_hash, role) 
             VALUES ('OBL-0001', 'admin123', 'admin')
@@ -99,7 +95,6 @@ const initializeDatabase = async () => {
         `);
         console.log('Администратор проверен/создан');
 
-        // Статьи, если таблица пуста
         const { rows: [{ count }] } = await client.query('SELECT COUNT(*) FROM articles');
         if (parseInt(count) === 0) {
             const adminId = (await client.query(`SELECT id FROM users WHERE employee_id = 'OBL-0001'`)).rows[0].id;
@@ -134,8 +129,23 @@ const initializeDatabase = async () => {
     }
 };
 
-// Запуск инициализации после прогрева пула
-initializeDatabase();
+// initializeDatabase();  
+
+//обёртка с повтором при обрыве
+const queryWithRetry = async (text, params, retries = 2) => {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+            return await pool.query(text, params);
+        } catch (err) {
+            if ((err.code === 'ECONNRESET' || err.message.includes('Connection terminated unexpectedly')) && attempt < retries) {
+                console.warn(`Повторная попытка запроса (${attempt}/${retries})...`);
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                continue;
+            }
+            throw err;
+        }
+    }
+};
 
 // Корректное завершение
 process.on('SIGTERM', async () => {
@@ -147,4 +157,5 @@ process.on('SIGINT', async () => {
     process.exit(0);
 });
 
-module.exports = pool;
+// Экспортируем и обёртку, и пул
+module.exports = { query: queryWithRetry, pool };
