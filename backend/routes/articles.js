@@ -10,13 +10,36 @@ let articlesCache = {
     ttl: 30 * 1000,
 };
 
-// Все статьи с фильтрацией, поиском и пагинацией
+// Все статьи с фильтрацией, поиском, пагинацией и фильтром по тегам
 router.get('/', async (req, res) => {
     try {
-        const { category, search, page = 1, limit = 20 } = req.query;
+        const { category, search, tag, page = 1, limit = 20 } = req.query;
         const offset = (page - 1) * limit;
 
-        // Если есть любые фильтры – кэш не используем
+        // ========= ФИЛЬТР ПО ТЕГАМ =========
+        if (tag) {
+            const tagQuery = `
+                SELECT 
+                    articles.*, 
+                    categories.name AS category_name,
+                    users.employee_id AS author_employee_id,
+                    users.role AS author_role,
+                    COALESCE(array_agg(tags.name) FILTER (WHERE tags.name IS NOT NULL), '{}') AS tags
+                FROM articles
+                LEFT JOIN categories ON articles.category_id = categories.id
+                LEFT JOIN users ON articles.author_id = users.id
+                LEFT JOIN article_tags ON articles.id = article_tags.article_id
+                LEFT JOIN tags ON article_tags.tag_id = tags.id
+                WHERE tags.name ILIKE $1
+                GROUP BY articles.id, categories.name, users.employee_id, users.role
+                ORDER BY articles.updated_at DESC
+                LIMIT $2 OFFSET $3
+            `;
+            const result = await db.query(tagQuery, [`%${tag}%`, limit, offset]);
+            return res.json(result.rows);
+        }
+
+        // ========= ОБЫЧНЫЙ ЗАПРОС (без тега) =========
         const useCache = !category && !search && page == 1 && limit == 20;
 
         const now = Date.now();
@@ -24,7 +47,6 @@ router.get('/', async (req, res) => {
             return res.json(articlesCache.data);
         }
 
-        // Базовый запрос с JOIN
         let query = `
             SELECT 
                 articles.*, 
@@ -38,20 +60,16 @@ router.get('/', async (req, res) => {
         const conditions = [];
         const params = [];
 
-        // Фильтр по категории (имя или id)
         if (category) {
             if (isNaN(category)) {
-                // имя категории
                 conditions.push(`categories.name ILIKE $${params.length + 1}`);
                 params.push(category);
             } else {
-                // id категории
                 conditions.push(`articles.category_id = $${params.length + 1}`);
                 params.push(parseInt(category));
             }
         }
 
-        // Поиск по заголовку и содержимому
         if (search) {
             conditions.push(
                 `(articles.title ILIKE $${params.length + 1} OR articles.content ILIKE $${params.length + 1})`
@@ -64,14 +82,11 @@ router.get('/', async (req, res) => {
         }
 
         query += ' ORDER BY articles.updated_at DESC';
-
-        // Пагинация
         query += ` LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
         params.push(limit, offset);
 
         const result = await db.query(query, params);
 
-        // Кэшируем только результат без фильтров
         if (useCache) {
             articlesCache.data = result.rows;
             articlesCache.timestamp = now;
@@ -84,7 +99,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Последние 10 статей (без кэша)
+// Последние 10 статей
 router.get('/recent', async (req, res) => {
     try {
         const result = await db.query(`
@@ -105,10 +120,14 @@ router.get('/recent', async (req, res) => {
     }
 });
 
-// Одна статья по ID (с категорией и автором)
+// Одна статья по ID (со счётчиком просмотров)
 router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
+
+        // Счётчик просмотров
+        await db.query(`UPDATE articles SET views = views + 1 WHERE id = $1`, [id]);
+
         const result = await db.query(`
             SELECT 
                 articles.*, 
@@ -135,19 +154,17 @@ router.get('/:id', async (req, res) => {
 router.post('/', authMiddleware, async (req, res) => {
     try {
         const { title, content, category_id } = req.body;
-        const author_id = req.user.id; // UUID из токена
+        const author_id = req.user.id;
 
         if (!title || !content || !category_id) {
             return res.status(400).json({ error: 'Не хватает полей: title, content, category_id' });
         }
 
-        // Проверяем существование категории
         const catCheck = await db.query('SELECT id FROM categories WHERE id = $1', [category_id]);
         if (catCheck.rows.length === 0) {
             return res.status(400).json({ error: 'Категория с таким id не найдена' });
         }
 
-        // Проверяем, что автор (user) существует в БД
         const userCheck = await db.query('SELECT id FROM users WHERE id = $1', [author_id]);
         if (userCheck.rows.length === 0) {
             return res.status(400).json({ error: 'Автор с таким id не найден' });
@@ -161,14 +178,13 @@ router.post('/', authMiddleware, async (req, res) => {
 
         const newArticle = result.rows[0];
 
-        // Добираем имя категории и employee_id автора для ответа
         const extra = await db.query(`
             SELECT categories.name AS category_name, users.employee_id AS author_employee_id
             FROM categories, users
             WHERE categories.id = $1 AND users.id = $2
         `, [newArticle.category_id, newArticle.author_id]);
 
-        // Сбрасываем кэш списка статей
+        // Сбрасываем кэш
         articlesCache.data = null;
         articlesCache.timestamp = 0;
 
