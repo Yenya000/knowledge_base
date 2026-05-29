@@ -19,3 +19,6 @@ CREATE TABLE IF NOT EXISTS comments (
     text TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Обновление таблицы articles (для просмотров)
+ALTER TABLE articles ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;
