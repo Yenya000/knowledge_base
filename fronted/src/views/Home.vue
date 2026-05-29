@@ -39,7 +39,7 @@
         <div class="flex flex-wrap gap-obl-1 pt-obl-2 border-t border-obl-border-subtle">
           <span class="text-[10px] font-mono text-obl-muted">#{{ article.category_name?.toLowerCase() || 'general' }}</span>
         </div>
-      </article>
+      </section>
     </main>
   </div>
 </template>
