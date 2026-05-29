@@ -1,176 +1,81 @@
 <template>
-  <div class="min-h-screen bg-ob-base text-ob-text">
-
-    <!-- Шапка -->
-    <header class="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-ob-base/80 border-b border-ob-border h-14">
-      <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-full">
-        
-        <!-- Логотип -->
-        <div class="flex gap-3 items-center">
-          <div class="w-6 h-6 bg-ob-accent" style="clip-path: polygon(50% 0%,85% 15%,100% 50%,85% 85%,50% 100%,15% 85%,0% 50%,15% 15%)"></div>
-          <span class="font-bold">OBLIVIONE</span>
-          <span class="font-bold text-ob-accent">|</span>
-          <span class="font-bold">BASE</span>
-        </div>
-
-        <!-- Навигация -->
-        <nav class="hidden md:flex gap-8">
-          <RouterLink to="/" class="text-sm text-ob-accent">База знаний</RouterLink>
-          <RouterLink to="/" class="text-sm text-ob-muted hover:text-ob-text transition-all duration-200">Регламенты</RouterLink>
-          <RouterLink to="/" class="text-sm text-ob-muted hover:text-ob-text transition-all duration-200">FAQ</RouterLink>
-          <RouterLink to="/" class="text-sm text-ob-muted hover:text-ob-text transition-all duration-200">Шаблоны</RouterLink>
-        </nav>
-
-        <!-- Кнопки -->
-        <div class="flex items-center gap-3">
-          <button class="border border-ob-accent text-ob-accent hover:bg-ob-accent hover:text-ob-base transition-all duration-200 text-sm font-bold px-4 py-1.5 rounded">Войти</button>
-          <button class="bg-ob-accent text-ob-base hover:opacity-90 transition-all duration-200 text-sm font-bold px-4 py-1.5 rounded">Мой кабинет</button>
-        </div>
+  <div class="min-h-screen bg-obl-base text-obl-primary p-obl-8 font-sans antialiased">
+    <header class="mb-obl-10 border-b border-obl-border-subtle pb-obl-4 flex items-center justify-between">
+      <div>
+        <span class="label">// Справочный центр</span>
+        <h1 class="text-2xl font-extrabold tracking-tight mt-obl-1">OBLIVION | BASE</h1>
+      </div>
+      <div class="flex items-center gap-obl-3">
+        <router-link to="/admin" class="btn btn-ghost btn-sm">Админка</router-link>
+        <router-link to="/profile" class="btn btn-subtle btn-sm">Профиль</router-link>
       </div>
     </header>
 
-    <main class="pt-14">
-      <section class="px-6 py-20 max-w-7xl mx-auto">
+    <section class="mb-obl-8 flex flex-col md:flex-row gap-obl-4 items-center justify-between">
+      <div class="w-full md:w-1/3 flex gap-obl-2">
+        <input v-model="searchQuery" type="search" class="input" placeholder="Поиск по названию..." />
+      </div>
 
-        <!-- Заголовок -->
-        <div class="mb-8">
-          <p class="font-mono uppercase tracking-widest text-xs text-ob-accent mb-3">// KNOWLEDGE BASE - OBLIVIONE GROUP</p>
-          <h1 class="text-4xl font-extrabold leading-tight mb-3">
-            Всё, что нужно <br>знать –
-            <span class="text-ob-accent">здесь</span>
-          </h1>
-          <p class="text-sm text-ob-muted">Инструкции, регламенты, шаблоны и документация компании</p>
+      <div class="flex flex-wrap gap-obl-2">
+        <button class="tag" :class="{ active: selectedCategory === '' }" @click="selectedCategory = ''">Все</button>
+        <button v-for="cat in categories" :key="cat" class="tag" :class="{ active: selectedCategory === cat }" @click="selectedCategory = cat">
+          {{ cat }}
+        </button>
+      </div>
+    </section>
+
+    <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-obl-6">
+      <article v-for="article in filteredArticles" :key="article.id" class="card flex flex-col justify-between group">
+        <div>
+          <div class="flex items-center justify-between mb-obl-3">
+            <span class="text-[10px] font-mono px-obl-2 py-0.5 rounded-obl-sm bg-obl-elevated border border-obl-border-default text-obl-accent uppercase">
+              {{ article.category_name || 'Без категории' }}
+            </span>
+          </div>
+          <h3 class="text-md font-bold text-obl-primary mb-obl-2">{{ article.title }}</h3>
+          <p class="text-sm text-obl-secondary line-clamp-3 mb-obl-4">{{ article.content }}</p>
         </div>
-
-        <!-- Поисковая строка -->
-        <div class="flex items-center border border-ob-border bg-ob-surface rounded-lg px-4 h-11 max-w-lg">
-          <input type="text" class="!border-0 !bg-transparent !p-0 outline-none flex-1 text-sm text-ob-text placeholder:text-ob-muted" placeholder="Поиск по базе знаний...">
-          <span class="text-xs text-ob-muted font-mono border border-ob-border px-2 rounded">⌘K</span>
-        </div>
-
-        <!-- Теги -->
-        <div class="flex gap-2 mt-6 flex-wrap">
-          <button class="text-xs px-3 py-1 rounded-full border border-ob-accent text-ob-accent bg-ob-accent/10">Все</button>
-          <button class="text-xs px-3 py-1 rounded-full border border-ob-border text-ob-muted hover:border-ob-accent hover:text-ob-accent transition-all duration-200">IT</button>
-          <button class="text-xs px-3 py-1 rounded-full border border-ob-border text-ob-muted hover:border-ob-accent hover:text-ob-accent transition-all duration-200">HR</button>
-          <button class="text-xs px-3 py-1 rounded-full border border-ob-border text-ob-muted hover:border-ob-accent hover:text-ob-accent transition-all duration-200">Финансы</button>
-          <button class="text-xs px-3 py-1 rounded-full border border-ob-border text-ob-muted hover:border-ob-accent hover:text-ob-accent transition-all duration-200">Маркетинг</button>
-          <button class="text-xs px-3 py-1 rounded-full border border-ob-border text-ob-muted hover:border-ob-accent hover:text-ob-accent transition-all duration-200">Юридический</button>
-        </div>
-
-        <!-- Статистика -->
-        <div class="flex gap-6 mt-8 pb-6 border-b border-ob-border font-mono text-xs text-ob-muted">
-          <div><span class="text-ob-accent font-bold">142</span> статьи</div>
-          <div><span class="text-ob-accent font-bold">8</span> разделов</div>
-          <div><span class="text-ob-accent font-bold">12</span> обновлено за неделю</div>
-        </div>
-
-        <!-- Карточки -->
-        <div class="grid mt-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-ob-border">
-          
-          <!-- Карточка 1 -->
-          <div class="bg-ob-surface p-5 hover:bg-ob-surface/80 transition-all duration-200 flex flex-col">
-            <div class="text-xs font-mono text-ob-accent uppercase tracking-widest mb-2">IT</div>
-            <h3 class="text-base font-semibold text-ob-text mb-2">Настройка рабочего окружения</h3>
-            <p class="text-sm text-ob-muted leading-relaxed mb-4 flex-1">Инструкция по установке ПО, VPN и доступа к корпоративным ресурсам</p>
-            <div class="flex justify-between items-center">
-              <div class="flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-ob-accent opacity-50 inline-block"></span>
-                <span class="text-xs text-ob-muted font-mono">2 дня назад</span>
-              </div>
-              <span class="text-ob-accent text-sm">→</span>
-            </div>
-          </div>
-
-          <!-- Карточка 2 -->
-          <div class="bg-ob-surface p-5 hover:bg-ob-surface/80 transition-all duration-200 flex flex-col">
-            <div class="text-xs font-mono text-ob-accent uppercase tracking-widest mb-2">HR</div>
-            <h3 class="text-base font-semibold text-ob-text mb-2">Регламент отпусков и больничных</h3>
-            <p class="text-sm text-ob-muted leading-relaxed mb-4 flex-1">Порядок оформления, сроки подачи заявок и необходимые документы</p>
-            <div class="flex justify-between items-center">
-              <div class="flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-ob-accent opacity-50 inline-block"></span>
-                <span class="text-xs text-ob-muted font-mono">5 дней назад</span>
-              </div>
-              <span class="text-ob-accent text-sm">→</span>
-            </div>
-          </div>
-
-          <!-- Карточка 3 -->
-          <div class="bg-ob-surface p-5 hover:bg-ob-surface/80 transition-all duration-200 flex flex-col">
-            <div class="text-xs font-mono text-ob-accent uppercase tracking-widest mb-2">МАРКЕТИНГ</div>
-            <h3 class="text-base font-semibold text-ob-text mb-2">Гайдлайн бренда Oblivione</h3>
-            <p class="text-sm text-ob-muted leading-relaxed mb-4 flex-1">Логотипы, шрифты, цвета и правила использования фирменного стиля</p>
-            <div class="flex justify-between items-center">
-              <div class="flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-ob-accent opacity-50 inline-block"></span>
-                <span class="text-xs text-ob-muted font-mono">3 дня назад</span>
-              </div>
-              <span class="text-ob-accent text-sm">→</span>
-            </div>
-          </div>
-
-          <!-- Карточка  4-->
-          <div class="bg-ob-surface p-5 hover:bg-ob-surface/80 transition-all duration-200 flex flex-col">
-            <div class="text-xs font-mono text-ob-accent uppercase tracking-widest mb-2">IT</div>
-            <h3 class="text-base font-semibold text-ob-text mb-2">API внутренних сервисов</h3>
-            <p class="text-sm text-ob-muted leading-relaxed mb-4 flex-1">Документация по эндпоинтам, авторизации и rate-limit политике</p>
-            <div class="flex justify-between items-center">
-              <div class="flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-ob-accent opacity-50 inline-block"></span>
-                <span class="text-xs text-ob-muted font-mono">сегодня</span>
-              </div>
-              <span class="text-ob-accent text-sm">→</span>
-            </div>
-          </div>
-
-          <!-- Карточка 5 -->
-          <div class="bg-ob-surface p-5 hover:bg-ob-surface/80 transition-all duration-200 flex flex-col">
-            <div class="text-xs font-mono text-ob-accent uppercase tracking-widest mb-2">ФИНАНСЫ</div>
-            <h3 class="text-base font-semibold text-ob-text mb-2">Авансовый отчёт: шаблон и правила</h3>
-            <p class="text-sm text-ob-muted leading-relaxed mb-4 flex-1">Как заполнить авансовый отчёт, сроки сдачи и примеры оформления</p>
-            <div class="flex justify-between items-center">
-              <div class="flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-ob-accent opacity-50 inline-block"></span>
-                <span class="text-xs text-ob-muted font-mono">1 неделю назад</span>
-              </div>
-              <span class="text-ob-accent text-sm">→</span>
-            </div>
-          </div>
-
-          <!-- Карточка 6 -->
-          <div class="bg-ob-surface p-5 hover:bg-ob-surface/80 transition-all duration-200 flex flex-col">
-            <div class="text-xs font-mono text-ob-accent uppercase tracking-widest mb-2">HR</div>
-            <h3 class="text-base font-semibold text-ob-text mb-2">Онбординг нового сотрудника</h3>
-            <p class="text-sm text-ob-muted leading-relaxed mb-4 flex-1">Чек-лист первого дня, доступы, знакомство с командой и процессами</p>
-            <div class="flex justify-between items-center">
-              <div class="flex items-center gap-1">
-                <span class="w-1.5 h-1.5 rounded-full bg-ob-accent opacity-50 inline-block"></span>
-                <span class="text-xs text-ob-muted font-mono">4 дня назад</span>
-              </div>
-              <span class="text-ob-accent text-sm">→</span>
-            </div>
-          </div>
-
+        <!-- Теги пока не приходят с бэка, можно убрать или оставить заглушку -->
+        <div class="flex flex-wrap gap-obl-1 pt-obl-2 border-t border-obl-border-subtle">
+          <span class="text-[10px] font-mono text-obl-muted">#{{ article.category_name?.toLowerCase() || 'general' }}</span>
         </div>
       </section>
     </main>
-
-    <footer class="border-t border-ob-border mt-auto">
-  <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-    
-    <div class="flex items-center gap-3">
-      <span class="text-xs text-ob-muted font-mono">© 2026 Oblivione Group</span>
-    </div>
-
-    <div class="flex items-center gap-6">
-      <RouterLink href="#" class="text-xs text-ob-muted hover:text-ob-text transition-all duration-200">Политика</RouterLink>
-      <RouterLink href="#" class="text-xs text-ob-muted hover:text-ob-text transition-all duration-200">Контакты</RouterLink>
-      <RouterLink href="#" class="text-xs text-ob-muted hover:text-ob-text transition-all duration-200">Docs</RouterLink>
-    </div>
-
-  </div>
-</footer>
-
   </div>
 </template>
+
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import api from '../api'
+
+const articles = ref([])
+const categories = ref(['IT', 'HR', 'Финансы', 'Маркетинг'])
+const searchQuery = ref('')
+const selectedCategory = ref('')
+
+onMounted(async () => {
+  try {
+    const response = await api.get('/articles')
+    articles.value = response.data
+    // Извлекаем уникальные категории из полученных статей
+    const cats = new Set(articles.value.map(a => a.category_name).filter(Boolean))
+    if (cats.size > 0) categories.value = Array.from(cats)
+  } catch (error) {
+    console.error('Ошибка загрузки статей:', error)
+    // Заглушки, если сервер не отвечает
+    articles.value = [
+      { id: 1, title: 'Настройка корпоративного VPN WireGuard', category_name: 'IT', content: 'Инструкция по настройке...' },
+      { id: 2, title: 'Как оформить ДМС сотрудника', category_name: 'HR', content: 'Информация о страховке...' }
+    ]
+  }
+})
+
+const filteredArticles = computed(() => {
+  return articles.value.filter(article => {
+    const matchesCategory = !selectedCategory.value || article.category_name === selectedCategory.value
+    const cleanQuery = searchQuery.value.trim().toLowerCase()
+    const matchesSearch = !cleanQuery || article.title.toLowerCase().includes(cleanQuery)
+    return matchesCategory && matchesSearch
+  })
+})
+</script>

@@ -1,16 +1,14 @@
 <template>
   <div class="min-h-screen bg-obl-base text-obl-primary p-obl-8 font-sans antialiased">
-    
     <header class="mb-obl-10 border-b border-obl-border-subtle pb-obl-4 flex items-center justify-between">
       <div>
         <span class="label">// Панель управления</span>
-        <h1 class="text-2xl font-extrabold tracking-tight mt-obl-1">OBLIVION <span class="text-obl-accent">|</span> BASE</h1>
+        <h1 class="text-2xl font-extrabold tracking-tight mt-obl-1">OBLIVION | BASE</h1>
       </div>
       <a href="/" class="btn btn-subtle btn-sm">На главную</a>
     </header>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-obl-8 items-start">
-      
       <section class="lg:col-span-5 card">
         <h2 class="text-lg font-bold mb-obl-6 text-obl-primary flex items-center gap-obl-2">
           <span class="text-obl-accent">#</span> Добавление новой статьи
@@ -19,46 +17,23 @@
         <form @submit.prevent="createArticle" class="space-y-obl-4">
           <div class="input-group">
             <label for="title" class="input-label">Заголовок статьи</label>
-            <input 
-              id="title" 
-              v-model="articleData.title" 
-              type="text" 
-              class="input" 
-              placeholder="Например: Регламент настройки VPN" 
-              required 
-            />
+            <input id="title" v-model="articleData.title" type="text" class="input" placeholder="Например: Регламент настройки VPN" required />
           </div>
 
           <div class="input-group">
             <label for="category" class="input-label">Категория</label>
-            <select id="category" v-model="articleData.category" class="input" required>
+            <select id="category" v-model="articleData.category_id" class="input" required>
               <option value="" disabled>Выберите раздел...</option>
-              <option value="IT">IT</option>
-              <option value="HR">HR</option>
-              <option value="Финансы">Финансы</option>
+              <option :value="1">IT</option>
+              <option :value="2">HR</option>
+              <option :value="3">Финансы</option>
+              <option :value="4">Маркетинг</option>
             </select>
           </div>
 
           <div class="input-group">
-            <label for="tags" class="input-label">Теги</label>
-            <input 
-              id="tags" 
-              v-model="articleData.tags" 
-              type="text" 
-              class="input" 
-              placeholder="vpn, безопасность, доступ" 
-            />
-          </div>
-
-          <div class="input-group">
             <label for="content" class="input-label">Содержимое статьи</label>
-            <textarea 
-              id="content" 
-              v-model="articleData.content" 
-              class="input min-h-[150px] resize-none" 
-              placeholder="Текст статьи..." 
-              required
-            ></textarea>
+            <textarea id="content" v-model="articleData.content" class="input min-h-[150px] resize-none" placeholder="Текст статьи..." required></textarea>
           </div>
 
           <button type="submit" class="btn btn-primary btn-full mt-obl-2">
@@ -93,27 +68,9 @@
                 </td>
                 <td class="py-obl-4 text-right pr-obl-2">
                   <div class="inline-flex gap-obl-1">
-                    <button 
-                      @click="changeRole(user.id, 'admin')" 
-                      :disabled="user.role === 'admin'"
-                      class="btn btn-ghost btn-sm text-[10px]"
-                    >
-                      Admin
-                    </button>
-                    <button 
-                      @click="changeRole(user.id, 'editor')" 
-                      :disabled="user.role === 'editor'"
-                      class="btn btn-subtle btn-sm text-[10px]"
-                    >
-                      Editor
-                    </button>
-                    <button 
-                      @click="changeRole(user.id, 'user')" 
-                      :disabled="user.role === 'user'"
-                      class="btn btn-subtle btn-sm text-[10px]"
-                    >
-                      User
-                    </button>
+                    <button @click="changeRole(user.id, 'admin')" :disabled="user.role === 'admin'" class="btn btn-ghost btn-sm text-[10px]">Admin</button>
+                    <button @click="changeRole(user.id, 'editor')" :disabled="user.role === 'editor'" class="btn btn-subtle btn-sm text-[10px]">Editor</button>
+                    <button @click="changeRole(user.id, 'user')" :disabled="user.role === 'user'" class="btn btn-subtle btn-sm text-[10px]">User</button>
                   </div>
                 </td>
               </tr>
@@ -121,19 +78,17 @@
           </table>
         </div>
       </section>
-
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import api from '../api' // Поднимаемся из папки views и забираем api.js
+import api from '../api'
 
 const articleData = ref({
   title: '',
-  category: '',
-  tags: '',
+  category_id: '',
   content: ''
 })
 
@@ -145,38 +100,26 @@ const usersList = ref([
   { id: 5, name: 'Грядова Ксения', role: 'user' }
 ])
 
-// Переписываем функцию на отправку реального POST-запроса по плану
 const createArticle = async () => {
   try {
-    // Формируем чистый JSON для бэкенда девочек
     const payload = {
       title: articleData.value.title,
-      category: articleData.value.category,
       content: articleData.value.content,
-      // Превращаем строку с запятыми в массив, очищая пробелы
-      tags: articleData.value.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '')
+      category_id: parseInt(articleData.value.category_id)   // отправляем число
     }
 
-    // Шлем POST-запрос на Светин эндпоинт. Интерцептор сам прикрепит токен!
     await api.post('/articles', payload)
-    
-    alert('Статья успешно опубликована и сохранена в базу!')
-    
-    // Очищаем форму после успешной отправки
-    articleData.value = { title: '', category: '', tags: '', content: '' }
-
+    alert('Статья успешно опубликована!')
+    articleData.value = { title: '', category_id: '', content: '' }
   } catch (error) {
     console.error('Ошибка при создании статьи:', error)
-    alert('Не удалось опубликовать статью: ' + (error.response?.data?.message || 'нет связи с сервером'))
+    alert('Не удалось опубликовать статью: ' + (error.response?.data?.error || 'нет связи с сервером'))
   }
 }
 
-// Заготовка под будущее обновление ролей на бэкенде
 const changeRole = async (userId, newRole) => {
   const user = usersList.value.find(u => u.id === userId)
-  if (user) {
-    // Пока меняем локально, но фронт готов слать PATCH/PUT запрос
-    user.role = newRole
-  }
+  if (user) user.role = newRole
+  // TODO: отправить запрос на бэкенд для изменения роли
 }
 </script>
