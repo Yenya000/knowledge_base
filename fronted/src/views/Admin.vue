@@ -17,23 +17,36 @@
         <form @submit.prevent="createArticle" class="space-y-obl-4">
           <div class="input-group">
             <label for="title" class="input-label">Заголовок статьи</label>
-            <input id="title" v-model="articleData.title" type="text" class="input" placeholder="Например: Регламент настройки VPN" required />
+            <input 
+              id="title" 
+              v-model="articleData.title" 
+              type="text" 
+              class="input" 
+              placeholder="Например: Регламент настройки VPN" 
+              required 
+            />
           </div>
 
           <div class="input-group">
             <label for="category" class="input-label">Категория</label>
-            <select id="category" v-model="articleData.category_id" class="input" required>
+            <select id="category" v-model="articleData.category" class="input" required>
               <option value="" disabled>Выберите раздел...</option>
-              <option :value="1">IT</option>
-              <option :value="2">HR</option>
-              <option :value="3">Финансы</option>
-              <option :value="4">Маркетинг</option>
+              <option value="IT">IT</option>
+              <option value="HR">HR</option>
+              <option value="Финансы">Финансы</option>
+              <option value="Маркетинг">Маркетинг</option>
             </select>
           </div>
 
           <div class="input-group">
             <label for="content" class="input-label">Содержимое статьи</label>
-            <textarea id="content" v-model="articleData.content" class="input min-h-[150px] resize-none" placeholder="Текст статьи..." required></textarea>
+            <textarea 
+              id="content" 
+              v-model="articleData.content" 
+              class="input min-h-[150px] resize-none" 
+              placeholder="Текст статьи..." 
+              required
+            ></textarea>
           </div>
 
           <button type="submit" class="btn btn-primary btn-full mt-obl-2">
@@ -68,9 +81,27 @@
                 </td>
                 <td class="py-obl-4 text-right pr-obl-2">
                   <div class="inline-flex gap-obl-1">
-                    <button @click="changeRole(user.id, 'admin')" :disabled="user.role === 'admin'" class="btn btn-ghost btn-sm text-[10px]">Admin</button>
-                    <button @click="changeRole(user.id, 'editor')" :disabled="user.role === 'editor'" class="btn btn-subtle btn-sm text-[10px]">Editor</button>
-                    <button @click="changeRole(user.id, 'user')" :disabled="user.role === 'user'" class="btn btn-subtle btn-sm text-[10px]">User</button>
+                    <button 
+                      @click="changeRole(user.id, 'admin')" 
+                      :disabled="user.role === 'admin'" 
+                      class="btn btn-ghost btn-sm text-[10px]"
+                    >
+                      Admin
+                    </button>
+                    <button 
+                      @click="changeRole(user.id, 'editor')" 
+                      :disabled="user.role === 'editor'" 
+                      class="btn btn-subtle btn-sm text-[10px]"
+                    >
+                      Editor
+                    </button>
+                    <button 
+                      @click="changeRole(user.id, 'user')" 
+                      :disabled="user.role === 'user'" 
+                      class="btn btn-subtle btn-sm text-[10px]"
+                    >
+                      User
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -83,43 +114,94 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import api from '../api'
+
+// ========== МАППИНГ КАТЕГОРИЙ ==========
+const categoryToId = {
+  'IT': 2,
+  'HR': 1,
+  'Финансы': 3,
+  'Маркетинг': 4
+}
 
 const articleData = ref({
   title: '',
-  category_id: '',
+  category: '',
   content: ''
 })
 
-const usersList = ref([
-  { id: 1, name: 'Мирук Анна', role: 'admin' },
-  { id: 2, name: 'Полынский Дмитрий', role: 'editor' },
-  { id: 3, name: 'Нилова Светлана', role: 'user' },
-  { id: 4, name: 'Крутикова Анастасия', role: 'user' },
-  { id: 5, name: 'Грядова Ксения', role: 'user' }
-])
+const usersList = ref([]) // ← ПУСТОЙ МАССИВ, загрузим с сервера
+const loading = ref(false)
+
+// ← ДОБАВИТЬ: загрузка пользователей с сервера
+const loadUsers = async () => {
+  try {
+    const response = await api.get('/users')
+    usersList.value = response.data
+  } catch (error) {
+    console.error('Ошибка загрузки пользователей:', error)
+    // Фолбэк на локальные данные
+    usersList.value = [
+      { id: 1, name: 'Мирук Анна', role: 'admin' },
+      { id: 2, name: 'Полынский Дмитрий', role: 'editor' },
+      { id: 3, name: 'Нилова Светлана', role: 'user' },
+      { id: 4, name: 'Крутикова Анастасия', role: 'user' },
+      { id: 5, name: 'Грядова Ксения', role: 'user' }
+    ]
+  }
+}
+
+// ← ДОБАВИТЬ: реальное изменение роли через API
+const changeRole = async (userId, newRole) => {
+  try {
+    await api.patch(`/users/${userId}/role`, { role: newRole })
+    
+    // Обновляем локально
+    const user = usersList.value.find(u => u.id === userId)
+    if (user) {
+      user.role = newRole
+      console.log(`Роль пользователя ${user.name} изменена на ${newRole}`)
+    }
+  } catch (error) {
+    console.error('Ошибка изменения роли:', error)
+    alert('Не удалось изменить роль: ' + (error.response?.data?.error || 'ошибка сервера'))
+  }
+}
 
 const createArticle = async () => {
+  if (!articleData.value.category) {
+    alert('Пожалуйста, выберите категорию')
+    return
+  }
+
+  const categoryId = categoryToId[articleData.value.category]
+  
+  if (!categoryId) {
+    alert('Неизвестная категория')
+    return
+  }
+
   try {
     const payload = {
       title: articleData.value.title,
       content: articleData.value.content,
-      category_id: parseInt(articleData.value.category_id)   // отправляем число
+      category_id: categoryId
     }
 
     await api.post('/articles', payload)
     alert('Статья успешно опубликована!')
-    articleData.value = { title: '', category_id: '', content: '' }
+    articleData.value = { title: '', category: '', content: '' }
+    
   } catch (error) {
     console.error('Ошибка при создании статьи:', error)
-    alert('Не удалось опубликовать статью: ' + (error.response?.data?.error || 'нет связи с сервером'))
+    const errorMsg = error.response?.data?.error || error.response?.data?.message || 'нет связи с сервером'
+    alert('Не удалось опубликовать статью: ' + errorMsg)
   }
 }
 
-const changeRole = async (userId, newRole) => {
-  const user = usersList.value.find(u => u.id === userId)
-  if (user) user.role = newRole
-  // TODO: отправить запрос на бэкенд для изменения роли
-}
+// ← ДОБАВИТЬ: загрузка при монтировании
+onMounted(() => {
+  loadUsers()
+})
 </script>
