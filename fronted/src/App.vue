@@ -1,54 +1,87 @@
 <template>
-  <div id="app" class="min-h-screen bg-obl-base text-obl-primary font-sans antialiased">
+  <div id="app" class="min-h-screen bg-ob-base text-ob-text font-sans antialiased flex flex-col">
     
-    <nav class="w-full bg-obl-elevated/80 backdrop-blur-md border-b border-obl-border-subtle px-8 py-4 flex items-center justify-between sticky top-0 z-50">
-      
-      <div class="flex items-center gap-8 flex-shrink-0">
-        <router-link to="/" class="font-mono text-xs tracking-widest text-obl-muted hover:text-obl-accent transition-colors">
-          // OBLIVION_CORE
-        </router-link>
+    <header class="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-ob-base/80 border-b border-ob-border h-14">
+      <div class="max-w-7xl mx-auto px-6 flex items-center justify-between h-full">
         
-        <div class="flex items-center gap-6 text-sm font-medium">
-          <router-link 
-            to="/" 
-            class="hover:text-obl-accent transition-colors" 
-            active-class="text-obl-accent"
+        <div class="flex gap-3 items-center">
+          <div class="w-6 h-6 bg-ob-accent" style="clip-path: polygon(50% 0%,85% 15%,100% 50%,85% 85%,50% 100%,15% 85%,0% 50%,15% 15%)"></div>
+          <span class="font-bold">OBLIVIONE</span>
+          <span class="font-bold text-ob-accent">|</span>
+          <span class="font-bold">BASE</span>
+        </div>
+
+        <nav class="hidden md:flex gap-8">
+          <RouterLink to="/" class="text-sm text-ob-accent">База знаний</RouterLink>
+          <RouterLink to="/" class="text-sm text-ob-muted hover:text-ob-text transition-all duration-200">Регламенты</RouterLink>
+          <RouterLink to="/" class="text-sm text-ob-muted hover:text-ob-text transition-all duration-200">FAQ</RouterLink>
+          <RouterLink to="/" class="text-sm text-ob-muted hover:text-ob-text transition-all duration-200">Шаблоны</RouterLink>
+        </nav>
+
+        <div class="flex items-center gap-3">
+          <button 
+            v-if="isLoggedIn" 
+            @click="logout"
+            class="border border-ob-accent text-ob-accent hover:bg-ob-accent hover:text-ob-base transition-all duration-200 text-sm font-bold px-4 py-1.5 rounded"
           >
-            Главная
-          </router-link>
-          
-          <router-link 
-            to="/profile" 
-            class="hover:text-obl-accent transition-colors" 
-            active-class="text-obl-accent"
+            Выйти
+          </button>
+          <RouterLink 
+            v-else 
+            to="/login" 
+            class="border border-ob-accent text-ob-accent hover:bg-ob-accent hover:text-ob-base transition-all duration-200 text-sm font-bold px-4 py-1.5 rounded"
           >
-            Личный кабинет
-          </router-link>
+            Войти
+          </RouterLink>
+
+          <RouterLink to="/profile" class="bg-ob-accent text-ob-base hover:opacity-90 transition-all duration-200 text-sm font-bold px-4 py-1.5 rounded">
+            Мой кабинет
+          </RouterLink>
         </div>
       </div>
+    </header>
 
-      <div class="flex-shrink-0">
-        <router-link 
-          to="/admin" 
-          class="text-xs font-mono px-3 py-1 rounded-sm bg-red-900/10 border border-red-500/20 text-red-400 hover:bg-red-900/30 transition-all"
-          active-class="border-red-500/60 bg-red-900/40"
-        >
-          [ADMIN_PANEL]
-        </router-link>
-      </div>
-    </nav>
-
-    <main class="w-full">
+    <main class="w-full flex-grow pt-14">
       <router-view />
     </main>
+
+    <footer class="border-t border-ob-border mt-auto">
+      <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-ob-muted font-mono">© 2026 Oblivione Group</span>
+        </div>
+        <div class="flex items-center gap-6">
+          <RouterLink to="#" class="text-xs text-ob-muted hover:text-ob-text transition-all duration-200">Политика</RouterLink>
+          <RouterLink to="#" class="text-xs text-ob-muted hover:text-ob-text transition-all duration-200">Контакты</RouterLink>
+          <RouterLink to="#" class="text-xs text-ob-muted hover:text-ob-text transition-all duration-200">Docs</RouterLink>
+        </div>
+      </div>
+    </footer>
 
   </div>
 </template>
 
 <script setup lang="ts">
-// Вся логика роутинга лежит в index.ts
+import { ref, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+
+const router = useRouter()
+const route = useRoute()
+const isLoggedIn = ref(!!localStorage.getItem('token'))
+
+// Следим за сменой страницы: как только пользователь перемещается по сайту,
+// мы обновляем статус авторизации в шапке
+watch(
+  () => route.path,
+  () => {
+    isLoggedIn.value = !!localStorage.getItem('token')
+  }
+)
+
+const logout = () => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('userRole')
+  isLoggedIn.value = false
+  router.push('/login')
+}
 </script>
-
-<style>
-
-</style>
