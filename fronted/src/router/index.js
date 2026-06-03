@@ -11,7 +11,7 @@ const routes = [
     path: '/',
     name: 'home',
     component: Home,
-    meta: { requiresAuth: true } // Закрываем главную по плану (нужен токен)
+    meta: { requiresAuth: true }
   },
   {
     path: '/login',
