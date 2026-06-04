@@ -37,6 +37,7 @@ router.get('/', async (req, res) => {
             `;
             const result = await db.query(tagQuery, [`%${tag}%`, limit, offset]);
             return res.json(result.rows);
+  
         }
 
         // ========= ОБЫЧНЫЙ ЗАПРОС (без тега) =========

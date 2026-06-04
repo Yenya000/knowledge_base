@@ -7,9 +7,13 @@ const categoriesRouter = require('./routes/categories');
 const { authMiddleware } = require('./middleware/auth');
 const app = express();
 const PORT = 3000;
+const exportRouter = require('./routes/export');
+const favoritesRouter = require('./routes/favorites');
 
 app.use(cors());
 app.use(express.json());
+app.use('/api/articles', exportRouter);
+app.use('/api/favorites', favoritesRouter);
 
 const JWT_SECRET = 'oblivion_secret_key_2026';
 
