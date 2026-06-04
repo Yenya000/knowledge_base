@@ -5,6 +5,8 @@ import Home from '../views/Home.vue'
 import Login from '../views/Login.vue'
 import Admin from '../views/Admin.vue'
 import Profile from '../views/Profile.vue'
+import Article from '../views/Article.vue'
+
 
 const routes = [
   {
@@ -23,6 +25,12 @@ const routes = [
     path: '/profile',
     name: 'profile',
     component: Profile,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/article/:id',
+    name: 'article',
+    component: Article,
     meta: { requiresAuth: true }
   },
   {
