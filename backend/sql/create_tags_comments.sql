@@ -22,3 +22,4 @@ CREATE TABLE IF NOT EXISTS comments (
 
 -- Обновление таблицы articles (для просмотров)
 ALTER TABLE articles ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;
+
