@@ -6,7 +6,6 @@ export default {
   ],
   theme: {
     extend: {
-      // Подключаем кастомные цвета из твоего :root
       colors: {
         'obl': {
           'base': 'var(--bg-base)',
@@ -24,7 +23,7 @@ export default {
           'border-accent': 'var(--border-accent)',
         }
       },
-      // Переопределяем шрифты под твои импорты
+      // Переопределяем шрифты 
       fontFamily: {
         sans: ['var(--font-sans)', 'sans-serif'],
         mono: ['var(--font-mono)', 'monospace'],

@@ -1,6 +1,8 @@
+// ИЗМЕНЕНИЕ: Добавлен маршрут для страницы отдельной статьи /article /: id
+
 import { createRouter, createWebHistory } from 'vue-router'
 
-// Импортируем компоненты строго по именам файлов из твоей папки views
+// Импортируем компоненты
 import Home from '../views/Home.vue'
 import Login from '../views/Login.vue'
 import Admin from '../views/Admin.vue'
@@ -37,7 +39,14 @@ const routes = [
     path: '/admin',
     name: 'admin',
     component: Admin,
-    meta: { requiresAuth: true, requiresAdmin: true } // Защита админки
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    // НОВЫЙ МАРШРУТ для страницы статьи
+    path: '/article/:id',
+    name: 'article',
+    component: Article,
+    meta: { requiresAuth: true }
   }
 ]
 
@@ -46,22 +55,19 @@ const router = createRouter({
   routes
 })
 
-// ГЛОБАЛЬНЫЙ НАВИГАЦИОННЫЙ ГВАРД ИЗ ПЛАНА
+// Глобальный навигационный гвард
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
   const userRole = localStorage.getItem('userRole')
 
-  // 1. Если роут требует авторизации, а токена нет — отправляем на вход
   if (to.meta.requiresAuth && !token) {
     return next({ name: 'login' })
   }
 
-  // 2. Если пользователь уже авторизован и идет на страницу логина — перекидываем в профиль
   if (to.meta.guestOnly && token) {
     return next({ name: 'profile' })
   }
 
-  // 3. Если это админка, а роль не admin — разворачиваем в профиль
   if (to.meta.requiresAdmin && userRole !== 'admin') {
     alert('Доступ ограничен. Требуются права администратора.')
     return next({ name: 'profile' })
