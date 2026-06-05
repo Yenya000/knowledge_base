@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
-const JWT_SECRET = 'oblivion_secret_key_2026';
-
+const JWT_SECRET = process.env.JWT_SECRET || 'oblivion_secret_key_2026';
 
 function authMiddleware(req, res, next) {
     const authHeader = req.headers.authorization;
@@ -21,7 +21,6 @@ function authMiddleware(req, res, next) {
     }
 }
 
-
 function roleMiddleware(requiredRole) {
     return (req, res, next) => {
         if (!req.user || req.user.role !== requiredRole) {
@@ -31,4 +30,12 @@ function roleMiddleware(requiredRole) {
     };
 }
 
-module.exports = { authMiddleware, roleMiddleware };
+// Для проверки роли admin или editor
+function adminOrEditorMiddleware(req, res, next) {
+    if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'editor')) {
+        return res.status(403).json({ error: 'Требуются права администратора или редактора' });
+    }
+    next();
+}
+
+module.exports = { authMiddleware, roleMiddleware, adminOrEditorMiddleware };
