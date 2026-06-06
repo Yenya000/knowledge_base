@@ -11,10 +11,14 @@ const { authMiddleware } = require('./middleware/auth');
 
 const app = express();
 const PORT = 3000;
+const exportRouter = require('./routes/export');
+const favoritesRouter = require('./routes/favorites');
 const JWT_SECRET = process.env.JWT_SECRET;
 
 app.use(cors());
 app.use(express.json());
+app.use('/api/articles', exportRouter);
+app.use('/api/favorites', favoritesRouter);
 
 // ========== РЕГИСТРАЦИЯ ==========
 app.post('/api/auth/register', async (req, res) => {
