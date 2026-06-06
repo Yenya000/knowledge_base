@@ -1,55 +1,107 @@
 <template>
-  <div id="app" class="min-h-screen bg-obl-base text-obl-primary font-sans antialiased">
-    
-    <nav class="bg-obl-elevated/80 backdrop-blur-md border-b border-obl-border-subtle px-obl-8 py-obl-4 flex items-center justify-between sticky top-0 z-50">
-      <div class="flex items-center gap-obl-6">
-        <router-link to="/" class="font-mono text-xs tracking-widest text-obl-muted hover:text-obl-accent transition-colors">
-          // OBLIVION_CORE
-        </router-link>
-        
-        <div class="flex items-center gap-obl-4 text-sm font-medium">
-          <router-link 
-            to="/" 
-            class="hover:text-obl-accent transition-colors" 
-            active-class="text-obl-accent"
-          >
-            Главная
-          </router-link>
-          
-          <router-link 
-            to="/profile" 
-            class="hover:text-obl-accent transition-colors" 
-            active-class="text-obl-accent"
-          >
-            Личный кабинет
-          </router-link>
+  <div id="app" class="min-h-screen bg-obl-base text-obl-primary font-sans antialiased flex flex-col">
+
+    <header class="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-obl-base/80 border-b border-obl-border-subtle h-14">
+      <div class="max-w-7xl mx-auto px-obl-6 flex items-center justify-between h-full">
+
+        <RouterLink to="/" class="flex gap-obl-3 items-center">
+          <div class="w-6 h-6 bg-obl-accent" style="clip-path: polygon(50% 0%,85% 15%,100% 50%,85% 85%,50% 100%,15% 85%,0% 50%,15% 15%)"></div>
+          <span class="font-bold text-primary">OBLIVIONE</span>
+          <span class="font-bold text-obl-accent">|</span>
+          <span class="font-bold text-primary">BASE</span>
+        </RouterLink>
+
+        <nav class="hidden md:flex gap-obl-8">
+          <RouterLink to="/" class="text-sm text-obl-accent">База знаний</RouterLink>
+          <RouterLink to="/" class="text-sm text-obl-muted hover:text-obl-primary transition-all duration-200">Регламенты</RouterLink>
+          <RouterLink to="/" class="text-sm text-obl-muted hover:text-obl-primary transition-all duration-200">FAQ</RouterLink>
+          <RouterLink to="/" class="text-sm text-obl-muted hover:text-obl-primary transition-all duration-200">Шаблоны</RouterLink>
+        </nav>
+
+        <div class="flex items-center gap-obl-3">
+          <button v-if="isLoggedIn" @click="logout" class="btn btn-ghost btn-sm mobile-hidden">
+            Выйти
+          </button>
+          <RouterLink v-else to="/login" class="btn btn-ghost btn-sm mobile-hidden">
+            Войти
+          </RouterLink>
+          <RouterLink to="/profile" class="btn btn-primary btn-sm mobile-hidden">
+            Мой кабинет
+          </RouterLink>
+
+          <!-- Кнопка гамбургер (только mobile) -->
+          <button class="md:hidden btn btn-subtle btn-sm" @click="mobileMenuOpen = !mobileMenuOpen">
+            ☰
+          </button>
         </div>
       </div>
+    </header>
 
-      <div>
-        <router-link 
-          to="/admin" 
-          class="text-xs font-mono px-obl-3 py-obl-1 rounded-obl-sm bg-red-900/10 border border-red-500/20 text-red-400 hover:bg-red-900/30 transition-all"
-          active-class="border-red-500/60 bg-red-900/40"
-        >
-          [ADMIN_PANEL]
-        </router-link>
-      </div>
-    </nav>
+    <!-- Мобильное меню -->
+    <div
+      v-if="mobileMenuOpen"
+      class="md:hidden fixed top-14 left-0 right-0 z-40 slide-down"
+      style="background: var(--bg-nav); border-bottom: 1px solid var(--border-subtle)"
+    >
+      <nav class="flex flex-col px-6 py-4 gap-4">
+        <RouterLink to="/" class="text-sm" @click="mobileMenuOpen = false">База знаний</RouterLink>
+        <RouterLink to="/" class="text-sm text-obl-muted" @click="mobileMenuOpen = false">Регламенты</RouterLink>
+        <RouterLink to="/" class="text-sm text-obl-muted" @click="mobileMenuOpen = false">FAQ</RouterLink>
+        <RouterLink to="/" class="text-sm text-obl-muted" @click="mobileMenuOpen = false">Шаблоны</RouterLink>
+        <div class="pt-2 border-t border-obl-border-subtle flex gap-3">
+          <button v-if="isLoggedIn" @click="logout" class="btn btn-ghost btn-sm">
+            Выйти
+          </button>
+          <RouterLink v-else to="/login" class="btn btn-ghost btn-sm" @click="mobileMenuOpen = false">
+            Войти
+          </RouterLink>
+          <RouterLink to="/profile" class="btn btn-primary btn-sm" @click="mobileMenuOpen = false">
+            Мой кабинет
+          </RouterLink>
+        </div>
+      </nav>
+    </div>
 
-    <main class="w-full">
+    <main class="w-full flex-grow pt-14">
       <router-view />
     </main>
+
+    <footer class="border-t border-obl-border-subtle mt-auto">
+      <div class="max-w-7xl mx-auto px-obl-6 py-obl-4 flex items-center justify-between">
+        <span class="text-xs text-obl-muted font-mono">© 2026 Oblivione Group</span>
+        <div class="flex items-center gap-obl-6">
+          <RouterLink to="#" class="text-xs text-obl-muted hover:text-obl-primary transition-all duration-200">Политика</RouterLink>
+          <RouterLink to="#" class="text-xs text-obl-muted hover:text-obl-primary transition-all duration-200">Контакты</RouterLink>
+          <RouterLink to="#" class="text-xs text-obl-muted hover:text-obl-primary transition-all duration-200">Docs</RouterLink>
+        </div>
+      </div>
+    </footer>
 
   </div>
 </template>
 
 <script setup lang="ts">
-// Скрипт пока пустой, всё управление идет через роутер
-</script>
+import { ref, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 
-<style>
-/* Все глобальные стили боди у нас уже лежат в global.css и подтягиваются через Tailwind.
-  Поэтому тег <style> оставляем абсолютно чистым, чтобы не дублировать код.
-*/
-</style>
+const router = useRouter()
+const route = useRoute()
+const isLoggedIn = ref(!!localStorage.getItem('token'))
+const mobileMenuOpen = ref(false)
+
+watch(
+  () => route.path,
+  () => {
+    isLoggedIn.value = !!localStorage.getItem('token')
+    mobileMenuOpen.value = false
+  }
+)
+
+const logout = () => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('userRole')
+  isLoggedIn.value = false
+  mobileMenuOpen.value = false
+  router.push('/login')
+}
+</script>
