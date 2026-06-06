@@ -111,6 +111,65 @@ app.get('/api/profile', authMiddleware, async (req, res) => {
     }
 });
 
+// ========== СПИСОК ВСЕХ СОТРУДНИКОВ (ТОЛЬКО АДМИНУ) ==========
+app.get('/api/users', authMiddleware, async (req, res) => {
+    // Проверяем, что текущий пользователь — админ
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Доступ запрещён. Только для администраторов.' });
+    }
+
+    try {
+        const result = await db.query(
+            'SELECT id, employee_id, role, created_at FROM users ORDER BY created_at DESC'
+        );
+        res.json(result.rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// ========== ИЗМЕНЕНИЕ РОЛИ (ТОЛЬКО АДМИНУ) ==========
+app.patch('/api/users/:id/role', authMiddleware, async (req, res) => {
+    // Проверяем, что текущий пользователь — админ
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Доступ запрещён. Только для администраторов.' });
+    }
+
+    const { id } = req.params;
+    const { role } = req.body;
+
+    // Проверяем, что роль допустимая
+    const allowedRoles = ['admin', 'editor', 'user'];
+    if (!allowedRoles.includes(role)) {
+        return res.status(400).json({ error: 'Недопустимая роль. Допустимые: admin, editor, user' });
+    }
+
+    // Нельзя менять роль самому себе
+    if (id === req.user.id) {
+        return res.status(400).json({ error: 'Нельзя изменить роль самому себе' });
+    }
+
+    try {
+        const result = await db.query(
+            'UPDATE users SET role = $1 WHERE id = $2 RETURNING id, employee_id, role, created_at',
+            [role, id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Пользователь не найден' });
+        }
+
+        res.json({
+            message: 'Роль успешно обновлена',
+            user: result.rows[0]
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
 // ========== РОУТЫ ==========
 app.use('/api/articles', articlesRouter);
 app.use('/api/categories', categoriesRouter);
