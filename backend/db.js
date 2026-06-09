@@ -1,12 +1,11 @@
 const { Pool } = require('pg');
+require('dotenv').config();
 
-const connectionString = 'postgresql://neondb_owner:npg_tLxSP3uwp7lZ@ep-sweet-thunder-ale35vy5.c-3.eu-central-1.aws.neon.tech/neondb';
+const connectionString = process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_tLxSP3uwp7lZ@ep-sweet-thunder-ale35vy5.c-3.eu-central-1.aws.neon.tech/neondb';
 
 const pool = new Pool({
     connectionString,
-    ssl: {
-        rejectUnauthorized: false
-    },
+    ssl: { rejectUnauthorized: false },
     idleTimeoutMillis: 20000,
     connectionTimeoutMillis: 15000,
     keepAlive: true,
@@ -38,7 +37,6 @@ const warmupPool = async () => {
 };
 warmupPool();
 
-// Keep-alive каждые 20 секунд — не даём соединениям умереть
 setInterval(async () => {
     try {
         await pool.query('SELECT 1');
@@ -131,7 +129,32 @@ const initializeDatabase = async () => {
 
 // initializeDatabase();  
 
-//обёртка с повтором при обрыве
+// Функция добавления колонки views, если её нет
+const addViewsColumn = async () => {
+    const client = await pool.connect();
+    try {
+        const res = await client.query(`
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name='articles' AND column_name='views'
+        `);
+        if (res.rows.length === 0) {
+            await client.query(`ALTER TABLE articles ADD COLUMN views INT DEFAULT 0`);
+            console.log('Добавлена колонка views в таблицу articles');
+        } else {
+            console.log('Колонка views уже существует');
+        }
+    } catch (err) {
+        console.error('Ошибка добавления колонки views:', err.message);
+    } finally {
+        client.release();
+    }
+};
+
+// Запускаем миграцию после прогрева
+setTimeout(() => addViewsColumn(), 3000);
+
+// Обёртка с повтором при обрыве
 const queryWithRetry = async (text, params, retries = 2) => {
     for (let attempt = 1; attempt <= retries; attempt++) {
         try {
@@ -157,5 +180,4 @@ process.on('SIGINT', async () => {
     process.exit(0);
 });
 
-// Экспортируем и обёртку, и пул
 module.exports = { query: queryWithRetry, pool };
