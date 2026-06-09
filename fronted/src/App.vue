@@ -13,8 +13,8 @@
 
         <nav class="hidden md:flex gap-obl-8">
           <RouterLink to="/" class="text-sm text-obl-accent">База знаний</RouterLink>
-          <RouterLink to="/" class="text-sm text-obl-muted hover:text-obl-primary transition-all duration-200">Регламенты</RouterLink>
-          <RouterLink to="/" class="text-sm text-obl-muted hover:text-obl-primary transition-all duration-200">FAQ</RouterLink>
+          <RouterLink to="/reglamenty" class="text-sm text-obl-muted hover:text-obl-primary transition-all duration-200">Регламенты</RouterLink>
+          <RouterLink to="/faq" class="text-sm text-obl-muted hover:text-obl-primary transition-all duration-200">FAQ</RouterLink>
           <RouterLink to="/" class="text-sm text-obl-muted hover:text-obl-primary transition-all duration-200">Шаблоны</RouterLink>
         </nav>
 
@@ -45,8 +45,8 @@
     >
       <nav class="flex flex-col px-6 py-4 gap-4">
         <RouterLink to="/" class="text-sm" @click="mobileMenuOpen = false">База знаний</RouterLink>
-        <RouterLink to="/" class="text-sm text-obl-muted" @click="mobileMenuOpen = false">Регламенты</RouterLink>
-        <RouterLink to="/" class="text-sm text-obl-muted" @click="mobileMenuOpen = false">FAQ</RouterLink>
+        <RouterLink to="/reglamenty" class="text-sm text-obl-muted" @click="mobileMenuOpen = false">Регламенты</RouterLink>
+        <RouterLink to="/faq" class="text-sm text-obl-muted" @click="mobileMenuOpen = false">FAQ</RouterLink>
         <RouterLink to="/" class="text-sm text-obl-muted" @click="mobileMenuOpen = false">Шаблоны</RouterLink>
         <div class="pt-2 border-t border-obl-border-subtle flex gap-3">
           <button v-if="isLoggedIn" @click="logout" class="btn btn-ghost btn-sm">
