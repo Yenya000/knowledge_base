@@ -37,7 +37,6 @@
           {{ item.label }}
         </button>
 
-        <!-- Управление статьями (для admin и editor) -->
         <button
           v-if="userRole === 'admin' || userRole === 'editor'"
           class="flex items-center gap-2 text-left px-3 py-2 rounded text-xs w-full transition-all duration-150"
@@ -47,7 +46,6 @@
           Управление статьями
         </button>
 
-        <!-- Панель управления / Сотрудники (только для admin) - НОВОЕ, без перехода -->
         <button
           v-if="userRole === 'admin'"
           class="flex items-center gap-2 text-left px-3 py-2 rounded text-xs w-full transition-all duration-150"
@@ -62,7 +60,6 @@
     <!-- ===================== MAIN ===================== -->
     <main class="flex-1 px-4 py-6 sm:px-6 md:px-8 md:py-8 min-w-0">
 
-      <!-- Мобильная шапка -->
       <div class="md:hidden flex items-center gap-4 mb-6 pb-6" style="border-bottom: 0.5px solid var(--border-subtle);">
         <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0"
              style="background: var(--bg-elevated); border: 1px solid var(--border-default); color: var(--accent); font-family: var(--font-mono);">
@@ -197,7 +194,7 @@
         </div>
       </section>
 
-      <!-- ========== НОВАЯ СЕКЦИЯ: СОТРУДНИКИ (только для admin) ========== -->
+      <!-- ========== СЕКЦИЯ: СОТРУДНИКИ ========== -->
       <section v-if="activeSection === 'employees' && userRole === 'admin'" class="mb-10">
         <p class="label mb-2">// УПРАВЛЕНИЕ СОТРУДНИКАМИ</p>
         <h2 class="text-xl font-bold mb-6" style="color: var(--text-primary);">Список сотрудников</h2>
@@ -217,34 +214,19 @@
           <table class="w-full text-left border-collapse">
             <thead class="sticky top-0" style="background: var(--bg-surface);">
               <tr class="border-b" style="border-color: var(--border-default);">
-                <th class="pb-obl-3 pl-obl-2 cursor-pointer" style="color: var(--text-muted); font-size: 11px;" @click="toggleUserSort('employee_id')">
-                  ID сотрудника <span v-if="userSortField === 'employee_id'">{{ userSortOrder === 'asc' ? '↑' : '↓' }}</span>
-                </th>
-                <th class="pb-obl-3 cursor-pointer" style="color: var(--text-muted); font-size: 11px;" @click="toggleUserSort('first_name')">
-                  Имя и фамилия <span v-if="userSortField === 'first_name'">{{ userSortOrder === 'asc' ? '↑' : '↓' }}</span>
-                </th>
-                <th class="pb-obl-3 cursor-pointer" style="color: var(--text-muted); font-size: 11px;" @click="toggleUserSort('email')">
-                  Email <span v-if="userSortField === 'email'">{{ userSortOrder === 'asc' ? '↑' : '↓' }}</span>
-                </th>
-                <th class="pb-obl-3 cursor-pointer" style="color: var(--text-muted); font-size: 11px;" @click="toggleUserSort('role')">
-                  Роль <span v-if="userSortField === 'role'">{{ userSortOrder === 'asc' ? '↑' : '↓' }}</span>
-                </th>
+                <th class="pb-obl-3 pl-obl-2 cursor-pointer" style="color: var(--text-muted); font-size: 11px;" @click="toggleUserSort('employee_id')">ID сотрудника <span v-if="userSortField === 'employee_id'">{{ userSortOrder === 'asc' ? '↑' : '↓' }}</span></th>
+                <th class="pb-obl-3 cursor-pointer" style="color: var(--text-muted); font-size: 11px;" @click="toggleUserSort('first_name')">Имя и фамилия <span v-if="userSortField === 'first_name'">{{ userSortOrder === 'asc' ? '↑' : '↓' }}</span></th>
+                <th class="pb-obl-3 cursor-pointer" style="color: var(--text-muted); font-size: 11px;" @click="toggleUserSort('email')">Email <span v-if="userSortField === 'email'">{{ userSortOrder === 'asc' ? '↑' : '↓' }}</span></th>
+                <th class="pb-obl-3 cursor-pointer" style="color: var(--text-muted); font-size: 11px;" @click="toggleUserSort('role')">Роль <span v-if="userSortField === 'role'">{{ userSortOrder === 'asc' ? '↑' : '↓' }}</span></th>
                 <th class="pb-obl-3 text-right pr-obl-2" style="color: var(--text-muted); font-size: 11px;">Действия</th>
-              </tr>
+              <tr>
             </thead>
             <tbody>
               <tr v-for="user in sortedUsers" :key="user.id" class="hover:bg-obl-elevated/40 transition-colors">
                 <td class="py-obl-4 pl-obl-2 font-mono" style="color: var(--text-muted);">{{ user.employee_id }}</td>
                 <td class="py-obl-4 font-medium" style="color: var(--text-primary);">{{ user.first_name }} {{ user.last_name }}</td>
                 <td class="py-obl-4" style="color: var(--text-muted);">{{ user.email || '—' }}</td>
-                <td class="py-obl-4">
-                  <span class="text-xs font-mono px-obl-2 py-0.5 rounded-obl-sm" :style="{ background: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }" :class="{
-                    'text-ob-accent': user.role === 'admin',
-                    'text-green-400': user.role === 'editor'
-                  }">
-                    {{ user.role }}
-                  </span>
-                </td>
+                <td class="py-obl-4"><span class="text-xs font-mono px-obl-2 py-0.5 rounded-obl-sm" :style="{ background: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }" :class="{ 'text-ob-accent': user.role === 'admin', 'text-green-400': user.role === 'editor' }">{{ user.role }}</span></td>
                 <td class="py-obl-4 text-right pr-obl-2">
                   <div class="inline-flex gap-obl-1">
                     <button @click="changeRole(user.id, 'admin')" :disabled="user.role === 'admin'" class="btn btn-ghost btn-sm text-[10px]">Admin</button>
@@ -253,9 +235,7 @@
                   </div>
                 </td>
               </tr>
-              <tr v-if="sortedUsers.length === 0">
-                <td colspan="5" class="text-center py-obl-8" style="color: var(--text-muted);">Нет сотрудников</td>
-              </tr>
+              <tr v-if="sortedUsers.length === 0"><td colspan="5" class="text-center py-obl-8" style="color: var(--text-muted);">Нет сотрудников</td></tr>
             </tbody>
           </table>
         </div>
@@ -291,7 +271,6 @@
         <section>
           <p class="label mb-2">// ДОПОЛНИТЕЛЬНО</p>
           <h2 class="text-xl font-bold mb-6" style="color: var(--text-primary);">Действия</h2>
-
           <div class="flex flex-col gap-4">
             <div class="action-card">
               <div class="flex items-center justify-between mb-1">
@@ -331,7 +310,7 @@
     </main>
   </div>
 
-  <!-- Модальное окно редактирования статьи -->
+  <!-- Модальные окна -->
   <div v-if="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" @click.self="closeEditModal">
     <div class="bg-obl-surface border border-obl-border-default rounded-obl-lg p-obl-6 w-full max-w-2xl mx-obl-4 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-obl-6">
@@ -339,66 +318,34 @@
         <button @click="closeEditModal" class="text-obl-muted hover:text-obl-accent transition-colors">✕</button>
       </div>
       <form @submit.prevent="updateArticle" class="space-y-obl-4">
-        <div class="input-group">
-          <label class="input-label">Заголовок</label>
-          <input v-model="editForm.title" type="text" class="input" required />
-        </div>
-        <div class="input-group">
-          <label class="input-label">Категория</label>
-          <select v-model="editForm.category" class="input" required>
-            <option value="IT">IT</option>
-            <option value="HR">HR</option>
-            <option value="Финансы">Финансы</option>
-            <option value="Маркетинг">Маркетинг</option>
-          </select>
-        </div>
-        <div class="input-group">
-          <label class="input-label">Содержимое</label>
-          <textarea v-model="editForm.content" class="input min-h-[200px] resize-none" required></textarea>
-        </div>
-        <div class="flex gap-obl-3 justify-end mt-obl-6">
-          <button type="button" @click="closeEditModal" class="btn btn-subtle">Отмена</button>
-          <button type="submit" class="btn btn-primary" :disabled="editLoading">{{ editLoading ? 'Сохранение...' : 'Сохранить изменения' }}</button>
-        </div>
+        <div class="input-group"><label class="input-label">Заголовок</label><input v-model="editForm.title" type="text" class="input" required /></div>
+        <div class="input-group"><label class="input-label">Категория</label><select v-model="editForm.category" class="input" required><option value="IT">IT</option><option value="HR">HR</option><option value="Финансы">Финансы</option><option value="Маркетинг">Маркетинг</option></select></div>
+        <div class="input-group"><label class="input-label">Содержимое</label><textarea v-model="editForm.content" class="input min-h-[200px] resize-none" required></textarea></div>
+        <div class="flex gap-obl-3 justify-end mt-obl-6"><button type="button" @click="closeEditModal" class="btn btn-subtle">Отмена</button><button type="submit" class="btn btn-primary" :disabled="editLoading">{{ editLoading ? 'Сохранение...' : 'Сохранить изменения' }}</button></div>
       </form>
     </div>
   </div>
 
-  <!-- Модальное окно подтверждения удаления статьи -->
   <div v-if="showDeleteConfirm" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" @click.self="closeDeleteConfirm">
     <div class="bg-obl-surface border border-obl-border-default rounded-obl-lg p-obl-6 w-full max-w-md mx-obl-4 text-center">
       <div class="text-red-400 text-4xl mb-obl-4">⚠️</div>
       <h3 class="text-lg font-bold mb-obl-2" style="color: var(--text-primary);">Удалить статью?</h3>
       <p class="text-obl-muted text-sm mb-obl-6">Вы уверены? Это действие нельзя отменить.</p>
-      <div class="flex gap-obl-3 justify-center">
-        <button @click="closeDeleteConfirm" class="btn btn-subtle">Отмена</button>
-        <button @click="deleteArticle" class="btn btn-primary" style="background: #e05252; border-color: #e05252;">Удалить</button>
-      </div>
+      <div class="flex gap-obl-3 justify-center"><button @click="closeDeleteConfirm" class="btn btn-subtle">Отмена</button><button @click="deleteArticle" class="btn btn-primary" style="background: #e05252; border-color: #e05252;">Удалить</button></div>
     </div>
   </div>
 
-  <!-- Модальное окно добавления сотрудника -->
   <div v-if="showAddUserModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" @click.self="closeAddUserModal">
     <div class="bg-obl-surface border border-obl-border-default rounded-obl-lg p-obl-6 w-full max-w-md mx-obl-4">
-      <div class="flex justify-between items-center mb-obl-6">
-        <h3 class="text-lg font-bold" style="color: var(--text-primary);">Добавление сотрудника</h3>
-        <button @click="closeAddUserModal" class="text-obl-muted hover:text-obl-accent">✕</button>
-      </div>
+      <div class="flex justify-between items-center mb-obl-6"><h3 class="text-lg font-bold" style="color: var(--text-primary);">Добавление сотрудника</h3><button @click="closeAddUserModal" class="text-obl-muted hover:text-obl-accent">✕</button></div>
       <form @submit.prevent="addUser" class="space-y-obl-4">
         <input v-model="newUser.employee_id" type="text" class="input" placeholder="OBL-XXXX" required />
         <input v-model="newUser.first_name" type="text" class="input" placeholder="Имя" required />
         <input v-model="newUser.last_name" type="text" class="input" placeholder="Фамилия" required />
         <input v-model="newUser.email" type="email" class="input" placeholder="Email" required />
         <input v-model="newUser.password" type="password" class="input" placeholder="Пароль" required />
-        <select v-model="newUser.role" class="input" required>
-          <option value="user">Сотрудник (user)</option>
-          <option value="editor">Редактор (editor)</option>
-          <option value="admin">Администратор (admin)</option>
-        </select>
-        <div class="flex gap-obl-3 justify-end">
-          <button type="button" @click="closeAddUserModal" class="btn btn-subtle">Отмена</button>
-          <button type="submit" class="btn btn-primary" :disabled="addUserLoading">{{ addUserLoading ? 'Добавление...' : 'Добавить' }}</button>
-        </div>
+        <select v-model="newUser.role" class="input" required><option value="user">Сотрудник (user)</option><option value="editor">Редактор (editor)</option><option value="admin">Администратор (admin)</option></select>
+        <div class="flex gap-obl-3 justify-end"><button type="button" @click="closeAddUserModal" class="btn btn-subtle">Отмена</button><button type="submit" class="btn btn-primary" :disabled="addUserLoading">{{ addUserLoading ? 'Добавление...' : 'Добавить' }}</button></div>
       </form>
     </div>
   </div>
@@ -413,38 +360,14 @@ import api from '../api'
 const router = useRouter()
 const activeSection = ref('profile')
 
-// ========== ДАННЫЕ ПОЛЬЗОВАТЕЛЯ ИЗ БД ==========
-const userData = ref({
-  first_name: '',
-  last_name: '',
-  employee_id: '',
-  email: '',
-  role: ''
-})
-
+const userData = ref({ first_name: '', last_name: '', employee_id: '', email: '', role: '' })
 const userRole = computed(() => userData.value.role || localStorage.getItem('userRole') || 'user')
 const userName = computed(() => `${userData.value.first_name || ''} ${userData.value.last_name || ''}`.trim() || 'Пользователь')
+const userRoleText = computed(() => userRole.value === 'admin' ? 'АДМИНИСТРАТОР' : userRole.value === 'editor' ? 'РЕДАКТОР' : 'СОТРУДНИК')
+const initials = computed(() => `${(userData.value.first_name?.[0] || '')}${(userData.value.last_name?.[0] || '')}`.toUpperCase() || 'U')
 
-const userRoleText = computed(() => {
-  switch (userRole.value) {
-    case 'admin': return 'АДМИНИСТРАТОР'
-    case 'editor': return 'РЕДАКТОР'
-    default: return 'СОТРУДНИК'
-  }
-})
+const navItems = [{ id: 'profile', label: 'Мой профиль' }, { id: 'favorites', label: 'Избранное' }]
 
-const initials = computed(() => {
-  const first = userData.value.first_name?.[0] || ''
-  const last = userData.value.last_name?.[0] || ''
-  return `${first}${last}`.toUpperCase() || 'U'
-})
-
-const navItems = [
-  { id: 'profile', label: 'Мой профиль' },
-  { id: 'favorites', label: 'Избранное' },
-]
-
-// ========== ЗАГРУЗКА ДАННЫХ ПОЛЬЗОВАТЕЛЯ ==========
 const loadUserData = async () => {
   try {
     const res = await api.get('/me')
@@ -452,17 +375,9 @@ const loadUserData = async () => {
     localStorage.setItem('userRole', res.data.role)
   } catch (e) {
     console.error('Ошибка загрузки профиля:', e)
-    userData.value = {
-      first_name: 'Дмитрий',
-      last_name: 'Полынский',
-      employee_id: 'OBL-0042',
-      email: 'd.polynskiy@oblivione.ru',
-      role: localStorage.getItem('userRole') || 'editor'
-    }
   }
 }
 
-// ========== УПРАВЛЕНИЕ СТАТЬЯМИ ==========
 const categoryToId = { 'IT': 2, 'HR': 1, 'Финансы': 3, 'Маркетинг': 4 }
 const idToCategory = { 1: 'HR', 2: 'IT', 3: 'Финансы', 4: 'Маркетинг' }
 
@@ -486,7 +401,6 @@ const loadArticles = async () => {
     const res = await api.get('/articles')
     articlesList.value = res.data
   } catch (e) {
-    console.error('Ошибка загрузки статей:', e)
     articlesList.value = []
   } finally {
     articlesLoading.value = false
@@ -494,118 +408,58 @@ const loadArticles = async () => {
 }
 
 const toggleArticleSort = (field) => {
-  if (articleSortField.value === field) {
-    articleSortOrder.value = articleSortOrder.value === 'asc' ? 'desc' : 'asc'
-  } else {
-    articleSortField.value = field
-    articleSortOrder.value = 'asc'
-  }
+  if (articleSortField.value === field) articleSortOrder.value = articleSortOrder.value === 'asc' ? 'desc' : 'asc'
+  else { articleSortField.value = field; articleSortOrder.value = 'asc' }
 }
 
 const filteredArticles = computed(() => {
   let result = articlesList.value
-  if (filterCategory.value) {
-    result = result.filter(a => a.category_name === filterCategory.value)
-  }
-  if (searchTitle.value) {
-    const q = searchTitle.value.toLowerCase()
-    result = result.filter(a => a.title.toLowerCase().includes(q))
-  }
+  if (filterCategory.value) result = result.filter(a => a.category_name === filterCategory.value)
+  if (searchTitle.value) { const q = searchTitle.value.toLowerCase(); result = result.filter(a => a.title.toLowerCase().includes(q)) }
   return result
 })
 
 const sortedFilteredArticles = computed(() => {
   const list = [...filteredArticles.value]
   return list.sort((a, b) => {
-    let valA = a[articleSortField.value] || ''
-    let valB = b[articleSortField.value] || ''
-    if (typeof valA === 'number') {
-      return articleSortOrder.value === 'asc' ? valA - valB : valB - valA
-    }
-    return articleSortOrder.value === 'asc' 
-      ? String(valA).localeCompare(String(valB)) 
-      : String(valB).localeCompare(String(valA))
+    let valA = a[articleSortField.value] || '', valB = b[articleSortField.value] || ''
+    if (typeof valA === 'number') return articleSortOrder.value === 'asc' ? valA - valB : valB - valA
+    return articleSortOrder.value === 'asc' ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA))
   })
 })
 
 const createArticle = async () => {
-  if (!articleData.value.category) {
-    alert('Выберите категорию')
-    return
-  }
+  if (!articleData.value.category) { alert('Выберите категорию'); return }
   const categoryId = categoryToId[articleData.value.category]
   articleLoading.value = true
   try {
-    await api.post('/articles', {
-      title: articleData.value.title,
-      content: articleData.value.content,
-      category_id: categoryId
-    })
+    await api.post('/articles', { title: articleData.value.title, content: articleData.value.content, category_id: categoryId })
     alert('Статья опубликована!')
     articleData.value = { title: '', category: '', content: '' }
     loadArticles()
-  } catch (e) {
-    alert('Ошибка: ' + (e.response?.data?.error || 'нет связи'))
-  } finally {
-    articleLoading.value = false
-  }
+  } catch (e) { alert('Ошибка: ' + (e.response?.data?.error || 'нет связи')) }
+  finally { articleLoading.value = false }
 }
 
-const openEditModal = (article) => {
-  editForm.value = {
-    id: article.id,
-    title: article.title,
-    category: article.category_name || idToCategory[article.category_id] || 'IT',
-    content: article.content
-  }
-  showEditModal.value = true
-}
-
-const closeEditModal = () => {
-  showEditModal.value = false
-}
-
+const openEditModal = (article) => { editForm.value = { id: article.id, title: article.title, category: article.category_name || idToCategory[article.category_id] || 'IT', content: article.content }; showEditModal.value = true }
+const closeEditModal = () => { showEditModal.value = false }
 const updateArticle = async () => {
   editLoading.value = true
   try {
-    await api.put(`/articles/${editForm.value.id}`, {
-      title: editForm.value.title,
-      content: editForm.value.content,
-      category_id: categoryToId[editForm.value.category]
-    })
-    alert('Статья обновлена!')
-    closeEditModal()
-    loadArticles()
-  } catch (e) {
-    alert('Ошибка: ' + (e.response?.data?.error || 'ошибка сервера'))
-  } finally {
-    editLoading.value = false
-  }
+    await api.put(`/articles/${editForm.value.id}`, { title: editForm.value.title, content: editForm.value.content, category_id: categoryToId[editForm.value.category] })
+    alert('Статья обновлена!'); closeEditModal(); loadArticles()
+  } catch (e) { alert('Ошибка: ' + (e.response?.data?.error || 'ошибка сервера')) }
+  finally { editLoading.value = false }
 }
 
-const confirmDelete = (article) => {
-  deleteTarget.value = article
-  showDeleteConfirm.value = true
-}
-
-const closeDeleteConfirm = () => {
-  showDeleteConfirm.value = false
-  deleteTarget.value = null
-}
-
+const confirmDelete = (article) => { deleteTarget.value = article; showDeleteConfirm.value = true }
+const closeDeleteConfirm = () => { showDeleteConfirm.value = false; deleteTarget.value = null }
 const deleteArticle = async () => {
   if (!deleteTarget.value) return
-  try {
-    await api.delete(`/articles/${deleteTarget.value.id}`)
-    alert('Статья удалена!')
-    closeDeleteConfirm()
-    loadArticles()
-  } catch (e) {
-    alert('Ошибка: ' + (e.response?.data?.error || 'ошибка сервера'))
-  }
+  try { await api.delete(`/articles/${deleteTarget.value.id}`); alert('Статья удалена!'); closeDeleteConfirm(); loadArticles() }
+  catch (e) { alert('Ошибка: ' + (e.response?.data?.error || 'ошибка сервера')) }
 }
 
-// ========== УПРАВЛЕНИЕ СОТРУДНИКАМИ ==========
 const usersList = ref([])
 const usersLoading = ref(true)
 const userSortField = ref('employee_id')
@@ -616,82 +470,41 @@ const newUser = ref({ employee_id: '', first_name: '', last_name: '', email: '',
 
 const loadUsers = async () => {
   usersLoading.value = true
-  try {
-    const res = await api.get('/users')
-    usersList.value = res.data
-  } catch (e) {
-    console.error('Ошибка загрузки пользователей:', e)
-    usersList.value = []
-  } finally {
-    usersLoading.value = false
-  }
+  try { const res = await api.get('/users'); usersList.value = res.data }
+  catch (e) { usersList.value = [] }
+  finally { usersLoading.value = false }
 }
 
 const toggleUserSort = (field) => {
-  if (userSortField.value === field) {
-    userSortOrder.value = userSortOrder.value === 'asc' ? 'desc' : 'asc'
-  } else {
-    userSortField.value = field
-    userSortOrder.value = 'asc'
-  }
+  if (userSortField.value === field) userSortOrder.value = userSortOrder.value === 'asc' ? 'desc' : 'asc'
+  else { userSortField.value = field; userSortOrder.value = 'asc' }
 }
 
 const sortedUsers = computed(() => {
   const list = [...usersList.value]
   return list.sort((a, b) => {
-    let valA = a[userSortField.value] || ''
-    let valB = b[userSortField.value] || ''
-    if (typeof valA === 'number') {
-      return userSortOrder.value === 'asc' ? valA - valB : valB - valA
-    }
-    return userSortOrder.value === 'asc' 
-      ? String(valA).localeCompare(String(valB)) 
-      : String(valB).localeCompare(String(valA))
+    let valA = a[userSortField.value] || '', valB = b[userSortField.value] || ''
+    if (typeof valA === 'number') return userSortOrder.value === 'asc' ? valA - valB : valB - valA
+    return userSortOrder.value === 'asc' ? String(valA).localeCompare(String(valB)) : String(valB).localeCompare(String(valA))
   })
 })
 
 const changeRole = async (userId, newRole) => {
-  try {
-    await api.patch(`/users/${userId}/role`, { role: newRole })
-    const user = usersList.value.find(u => u.id === userId)
-    if (user) user.role = newRole
-    alert(`Роль изменена на ${newRole}`)
-  } catch (e) {
-    alert('Ошибка: ' + (e.response?.data?.error || 'ошибка сервера'))
-  }
+  try { await api.patch(`/users/${userId}/role`, { role: newRole }); const user = usersList.value.find(u => u.id === userId); if (user) user.role = newRole; alert(`Роль изменена на ${newRole}`) }
+  catch (e) { alert('Ошибка: ' + (e.response?.data?.error || 'ошибка сервера')) }
 }
 
-const openAddUserModal = () => {
-  newUser.value = { employee_id: '', first_name: '', last_name: '', email: '', password: '', role: 'user' }
-  showAddUserModal.value = true
-}
-
-const closeAddUserModal = () => {
-  showAddUserModal.value = false
-}
-
+const openAddUserModal = () => { newUser.value = { employee_id: '', first_name: '', last_name: '', email: '', password: '', role: 'user' }; showAddUserModal.value = true }
+const closeAddUserModal = () => { showAddUserModal.value = false }
 const addUser = async () => {
   addUserLoading.value = true
   try {
-    await api.post('/auth/register', {
-      employee_id: newUser.value.employee_id,
-      password: newUser.value.password,
-      role: newUser.value.role,
-      email: newUser.value.email,
-      first_name: newUser.value.first_name,
-      last_name: newUser.value.last_name
-    })
-    alert('Сотрудник добавлен!')
-    closeAddUserModal()
-    loadUsers()
-  } catch (e) {
-    alert('Ошибка: ' + (e.response?.data?.error || 'ошибка сервера'))
-  } finally {
-    addUserLoading.value = false
-  }
+    await api.post('/auth/register', { employee_id: newUser.value.employee_id, password: newUser.value.password, role: newUser.value.role, email: newUser.value.email, first_name: newUser.value.first_name, last_name: newUser.value.last_name })
+    alert('Сотрудник добавлен!'); closeAddUserModal(); loadUsers()
+  } catch (e) { alert('Ошибка: ' + (e.response?.data?.error || 'ошибка сервера')) }
+  finally { addUserLoading.value = false }
 }
 
-// ========== ДАННЫЕ ДИМЫ ==========
 const recentActivity = ref([
   { title: 'Настройка рабочего окружения', action: 'Просмотрено', time: '2 дня назад', cat: 'IT' },
   { title: 'Регламент отпусков и больничных', action: 'Просмотрено', time: '3 дня назад', cat: 'HR' },
@@ -709,106 +522,29 @@ const showComplaint = ref(false)
 const suggestionText = ref('')
 const complaintText = ref('')
 
-const submitSuggestion = () => {
-  suggestionText.value = ''
-  showSuggestion.value = false
-}
-
-const submitComplaint = () => {
-  complaintText.value = ''
-  showComplaint.value = false
-}
-
-const handleLogout = () => {
-  localStorage.removeItem('token')
-  localStorage.removeItem('userRole')
-  router.push('/login')
-}
+const submitSuggestion = () => { suggestionText.value = ''; showSuggestion.value = false }
+const submitComplaint = () => { complaintText.value = ''; showComplaint.value = false }
+const handleLogout = () => { localStorage.removeItem('token'); localStorage.removeItem('userRole'); router.push('/login') }
 
 onMounted(() => {
   loadUserData()
   loadArticles()
-  if (userRole.value === 'admin') {
-    loadUsers()
-  }
+  if (userRole.value === 'admin') loadUsers()
 })
 </script>
 
 <style scoped>
-.data-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-}
-
-.data-label {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 6px;
-}
-
-.data-value {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  line-height: 1.4;
-}
-
-.action-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 16px;
-  transition: border-color 0.15s ease;
-}
-
-.action-card:hover {
-  border-color: var(--border-accent);
-}
-
-.nav-item {
-  color: var(--text-muted);
-  font-family: var(--font-sans);
-}
-
-.nav-item:hover {
-  color: var(--text-primary);
-  background: var(--bg-elevated);
-}
-
-.nav-item-active {
-  color: var(--accent);
-  background: var(--accent-dim);
-  font-family: var(--font-sans);
-}
-
-.loading-spinner {
-  width: 32px;
-  height: 32px;
-  border: 2px solid var(--border-default);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-.overflow-y-auto::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-.overflow-y-auto::-webkit-scrollbar-track {
-  background: var(--border-subtle);
-  border-radius: 4px;
-}
-.overflow-y-auto::-webkit-scrollbar-thumb {
-  background: var(--border-default);
-  border-radius: 4px;
-}
+.data-card { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 16px; display: flex; flex-direction: column; }
+.data-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+.data-value { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); line-height: 1.4; }
+.action-card { background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 16px; transition: border-color 0.15s ease; }
+.action-card:hover { border-color: var(--border-accent); }
+.nav-item { color: var(--text-muted); font-family: var(--font-sans); }
+.nav-item:hover { color: var(--text-primary); background: var(--bg-elevated); }
+.nav-item-active { color: var(--accent); background: var(--accent-dim); font-family: var(--font-sans); }
+.loading-spinner { width: 32px; height: 32px; border: 2px solid var(--border-default); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.overflow-y-auto::-webkit-scrollbar { width: 6px; height: 6px; }
+.overflow-y-auto::-webkit-scrollbar-track { background: var(--border-subtle); border-radius: 4px; }
+.overflow-y-auto::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
 </style>

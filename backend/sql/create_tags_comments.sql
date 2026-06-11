@@ -22,3 +22,13 @@ CREATE TABLE IF NOT EXISTS comments (
 
 -- Обновление таблицы articles (для просмотров)
 ALTER TABLE articles ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;
+
+
+--добавление таблицы favorites
+CREATE TABLE IF NOT EXISTS favorites (
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    article_id INTEGER NOT NULL REFERENCES articles(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    PRIMARY KEY (user_id, article_id)
+);
+

@@ -76,10 +76,46 @@
             </tbody>
           </table>
         </div>
-      </div>
     </section>
+    </div>
+
+    <!-- Модальное окно редактирования -->
+    <Transition name="modal">
+    <div v-if="showEditModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" @click.self="closeEditModal">
+      <div class="bg-obl-surface border border-obl-border-default rounded-obl-lg p-obl-6 w-full max-w-2xl mx-obl-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between mb-obl-6">
+          <h3 class="text-lg font-bold text-obl-primary">Редактирование статьи</h3>
+          <button @click="closeEditModal" class="text-obl-muted hover:text-obl-accent transition-colors">✕</button>
+        </div>
+        <form @submit.prevent="updateArticle" class="space-y-obl-4">
+          <div class="input-group">
+            <label class="input-label">Заголовок</label>
+            <input v-model="editForm.title" type="text" class="input" required />
+          </div>
+          <div class="input-group">
+            <label class="input-label">Категория</label>
+            <select v-model="editForm.category" class="input" required>
+              <option value="IT">IT</option>
+              <option value="HR">HR</option>
+              <option value="Финансы">Финансы</option>
+              <option value="Маркетинг">Маркетинг</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Содержимое</label>
+            <textarea v-model="editForm.content" class="input min-h-[200px] resize-none" required></textarea>
+          </div>
+          <div class="flex gap-obl-3 justify-end mt-obl-6">
+            <button type="button" @click="closeEditModal" class="btn btn-subtle">Отмена</button>
+            <button type="submit" class="btn btn-primary" :disabled="editLoading">{{ editLoading ? 'Сохранение...' : 'Сохранить изменения' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    </Transition>
 
     <!-- Модальное окно добавления сотрудника -->
+    <Transition name="modal">
     <div v-if="showAddUserModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" @click.self="closeAddUserModal">
       <div class="bg-obl-surface border border-obl-border-default rounded-obl-lg p-obl-6 w-full max-w-md mx-obl-4">
         <div class="flex justify-between items-center mb-obl-6">
@@ -104,6 +140,24 @@
         </form>
       </div>
     </div>
+    </Transition>
+
+    <!-- Модальное окно подтверждения удаления -->
+    <Transition name="modal">
+    <div v-if="showDeleteConfirm" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" @click.self="closeDeleteConfirm">
+      <div class="bg-obl-surface border border-obl-border-default rounded-obl-lg p-obl-6 w-full max-w-md mx-obl-4">
+        <div class="text-center">
+          <div class="text-red-400 text-4xl mb-obl-4">⚠️</div>
+          <h3 class="text-lg font-bold text-obl-primary mb-obl-2">Удалить статью?</h3>
+          <p class="text-obl-muted text-sm mb-obl-6">Вы уверены? Это действие нельзя отменить.</p>
+          <div class="flex gap-obl-3 justify-center">
+            <button @click="closeDeleteConfirm" class="btn btn-subtle">Отмена</button>
+            <button @click="deleteArticle" class="btn btn-primary bg-red-600 hover:bg-red-700">Удалить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    </Transition>
 
   </div>
 </template>
@@ -216,5 +270,27 @@ onMounted(() => {
 .overflow-y-auto::-webkit-scrollbar-thumb {
   background: var(--border-default);
   border-radius: 4px;
+}
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-dim);
+}
+
+/* Анимация модальных окон */
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.2s ease;
+}
+.modal-enter-active .bg-obl-surface,
+.modal-leave-active .bg-obl-surface {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+.modal-enter-from .bg-obl-surface,
+.modal-leave-to .bg-obl-surface {
+  transform: scale(0.95) translateY(-8px);
+  opacity: 0;
 }
 </style>

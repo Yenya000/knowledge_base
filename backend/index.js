@@ -11,10 +11,14 @@ const { authMiddleware } = require('./middleware/auth');
 
 const app = express();
 const PORT = 3000;
+const exportRouter = require('./routes/export');
+const favoritesRouter = require('./routes/favorites');
 const JWT_SECRET = process.env.JWT_SECRET;
 
 app.use(cors());
 app.use(express.json());
+app.use('/api/articles', exportRouter);
+app.use('/api/favorites', favoritesRouter);
 
 // ========== РЕГИСТРАЦИЯ ==========
 app.post('/api/auth/register', async (req, res) => {
@@ -101,6 +105,65 @@ app.get('/api/profile', authMiddleware, async (req, res) => {
         }
 
         res.json(result.rows[0]);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// ========== СПИСОК ВСЕХ СОТРУДНИКОВ (ТОЛЬКО АДМИНУ) ==========
+app.get('/api/users', authMiddleware, async (req, res) => {
+    // Проверяем, что текущий пользователь — админ
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Доступ запрещён. Только для администраторов.' });
+    }
+
+    try {
+        const result = await db.query(
+            'SELECT id, employee_id, role, created_at FROM users ORDER BY created_at DESC'
+        );
+        res.json(result.rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// ========== ИЗМЕНЕНИЕ РОЛИ (ТОЛЬКО АДМИНУ) ==========
+app.patch('/api/users/:id/role', authMiddleware, async (req, res) => {
+    // Проверяем, что текущий пользователь — админ
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Доступ запрещён. Только для администраторов.' });
+    }
+
+    const { id } = req.params;
+    const { role } = req.body;
+
+    // Проверяем, что роль допустимая
+    const allowedRoles = ['admin', 'editor', 'user'];
+    if (!allowedRoles.includes(role)) {
+        return res.status(400).json({ error: 'Недопустимая роль. Допустимые: admin, editor, user' });
+    }
+
+    // Нельзя менять роль самому себе
+    if (id === req.user.id) {
+        return res.status(400).json({ error: 'Нельзя изменить роль самому себе' });
+    }
+
+    try {
+        const result = await db.query(
+            'UPDATE users SET role = $1 WHERE id = $2 RETURNING id, employee_id, role, created_at',
+            [role, id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Пользователь не найден' });
+        }
+
+        res.json({
+            message: 'Роль успешно обновлена',
+            user: result.rows[0]
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Ошибка сервера' });

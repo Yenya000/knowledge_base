@@ -37,6 +37,19 @@ const routes = [
     path: '/admin',
     name: 'admin',
     component: Admin,
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    // НОВЫЙ МАРШРУТ для страницы статьи
+    path: '/article/:id',
+    name: 'article',
+    component: Article,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/admin',
+    name: 'admin',
+    component: Admin,
     meta: { requiresAuth: true, requiresAdmin: true } // Защита админки
   }
 ]
