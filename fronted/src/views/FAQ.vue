@@ -37,11 +37,11 @@
           <span>{{ item.q }}</span>
           <span class="accordion-icon">{{ openId === item.id ? '−' : '+' }}</span>
         </button>
-        <Transition name="accordion">
-          <div v-show="openId === item.id" class="accordion-body">
-            {{ item.a }}
+        <div class="accordion-content" :class="{ open: openId === item.id }">
+          <div class="accordion-content-inner">
+            <div class="accordion-body">{{ item.a }}</div>
           </div>
-        </Transition>
+        </div>
       </div>
 
       <!-- Пустое состояние -->
@@ -83,6 +83,7 @@ const filtered = computed(() =>
     ? faqItems.value.filter(f => f.cat === selectedCat.value)
     : faqItems.value
 )
+
 </script>
 
 <style scoped>
@@ -119,22 +120,28 @@ const filtered = computed(() =>
   transition: transform 0.2s;
 }
 
+.accordion-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+}
+
+.accordion-content.open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.accordion-content-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
 .accordion-body {
   padding-bottom: 16px;
   font-size: 13px;
   line-height: 1.8;
   color: var(--text-secondary);
-}
-
-/* Анимация раскрытия */
-.accordion-enter-active,
-.accordion-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.accordion-enter-from,
-.accordion-leave-to {
-  opacity: 0;
 }
 
 /* Минимальная высота тегов на мобильных */
