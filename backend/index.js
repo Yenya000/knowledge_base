@@ -13,12 +13,18 @@ const app = express();
 const PORT = 3000;
 const exportRouter = require('./routes/export');
 const favoritesRouter = require('./routes/favorites');
+const tagsRouter = require('./routes/tags');
+const commentsRouter = require('./routes/comments');
 const JWT_SECRET = process.env.JWT_SECRET;
 
 app.use(cors());
 app.use(express.json());
+
+// ========== ПОДКЛЮЧЕНИЕ РОУТОВ ==========
 app.use('/api/articles', exportRouter);
 app.use('/api/favorites', favoritesRouter);
+app.use('/api/tags', tagsRouter);
+app.use('/api/comments', commentsRouter);   
 
 // ========== РЕГИСТРАЦИЯ ==========
 app.post('/api/auth/register', async (req, res) => {
@@ -113,7 +119,6 @@ app.get('/api/profile', authMiddleware, async (req, res) => {
 
 // ========== СПИСОК ВСЕХ СОТРУДНИКОВ (ТОЛЬКО АДМИНУ) ==========
 app.get('/api/users', authMiddleware, async (req, res) => {
-    // Проверяем, что текущий пользователь — админ
     if (req.user.role !== 'admin') {
         return res.status(403).json({ error: 'Доступ запрещён. Только для администраторов.' });
     }
@@ -131,7 +136,6 @@ app.get('/api/users', authMiddleware, async (req, res) => {
 
 // ========== ИЗМЕНЕНИЕ РОЛИ (ТОЛЬКО АДМИНУ) ==========
 app.patch('/api/users/:id/role', authMiddleware, async (req, res) => {
-    // Проверяем, что текущий пользователь — админ
     if (req.user.role !== 'admin') {
         return res.status(403).json({ error: 'Доступ запрещён. Только для администраторов.' });
     }
@@ -139,13 +143,11 @@ app.patch('/api/users/:id/role', authMiddleware, async (req, res) => {
     const { id } = req.params;
     const { role } = req.body;
 
-    // Проверяем, что роль допустимая
     const allowedRoles = ['admin', 'editor', 'user'];
     if (!allowedRoles.includes(role)) {
         return res.status(400).json({ error: 'Недопустимая роль. Допустимые: admin, editor, user' });
     }
 
-    // Нельзя менять роль самому себе
     if (id === req.user.id) {
         return res.status(400).json({ error: 'Нельзя изменить роль самому себе' });
     }
@@ -170,7 +172,7 @@ app.patch('/api/users/:id/role', authMiddleware, async (req, res) => {
     }
 });
 
-// ========== РОУТЫ ==========
+// ========== ОСНОВНЫЕ РОУТЫ ==========
 app.use('/api/articles', articlesRouter);
 app.use('/api/categories', categoriesRouter);
 
