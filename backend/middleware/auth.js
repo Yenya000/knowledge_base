@@ -23,19 +23,30 @@ function authMiddleware(req, res, next) {
 
 function roleMiddleware(requiredRole) {
     return (req, res, next) => {
-        if (!req.user || req.user.role !== requiredRole) {
+        if (!req.user) {
+            return res.status(403).json({ error: 'Недостаточно прав' });
+        }
+        // Если роль admin
+        if (req.user.role === 'admin') {
+            return next();
+        }
+        // Если не admin
+        if (req.user.role !== requiredRole) {
             return res.status(403).json({ error: 'Недостаточно прав' });
         }
         next();
     };
 }
 
-// Для проверки роли admin или editor
+// Для routes/articles.js
 function adminOrEditorMiddleware(req, res, next) {
-    if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'editor')) {
-        return res.status(403).json({ error: 'Требуются права администратора или редактора' });
+    if (!req.user) {
+        return res.status(403).json({ error: 'Недостаточно прав' });
     }
-    next();
+    if (req.user.role === 'admin' || req.user.role === 'editor') {
+        return next();
+    }
+    return res.status(403).json({ error: 'Требуются права администратора или редактора' });
 }
 
 module.exports = { authMiddleware, roleMiddleware, adminOrEditorMiddleware };
