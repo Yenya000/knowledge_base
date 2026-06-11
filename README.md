@@ -1,35 +1,37 @@
-```markdown
+
 # OBLIVION | BASE — Корпоративная база знаний
 
 ## О проекте
 Корпоративная база знаний для хранения и систематизации инструкций, регламентов, FAQ и шаблонов документов компании Oblivione Group.
-```
+
 ## Ссылки на рабочий проект
 | Компонент | Ссылка |
 |-----------|--------|
 | **Frontend** | https://oblivion-base.netlify.app |
 | **Backend API** | https://oblivion-base.onrender.com |
 
-```markdown
+
 > 🔗 Ссылки будут добавлены после деплоя (12 июня)
 
 ## 🚀 Стек технологий
-
+```markdown
 ### Frontend
 - Vue 3 (Composition API)
 - Vite
 - Tailwind CSS
 - Vue Router
 - Axios
-
+```
 ### Backend
+```markdown
 - Node.js
 - Express.js
 - PostgreSQL (Neon)
 - JWT авторизация
 - bcrypt для хеширования паролей
-
+```
 ### Деплой
+```markdown
 - Frontend: Netlify
 - Backend: Render
 - Database: Neon (Cloud PostgreSQL)
@@ -45,14 +47,16 @@
 | Грядова Ксения | Backend | @gryadova_k |
 
 ## 📅 Сроки разработки
+```markdown
 4-5 недель (май-июнь 2026)
-
+```
 ## 📦 Установка и запуск локально
 
 ### Требования
+```markdown
 - Node.js 18+
 - PostgreSQL (или аккаунт Neon)
-
+```
 ### 1. Клонирование
 ```bash
 git clone <url-репозитория>
