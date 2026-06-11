@@ -6,6 +6,8 @@ import Login from '../views/Login.vue'
 import Admin from '../views/Admin.vue'
 import Profile from '../views/Profile.vue'
 import Article from '../views/Article.vue'
+import Reglamenty from '../views/Reglamenty.vue'
+import FAQ from '../views/FAQ.vue'
 
 
 const routes = [
@@ -40,10 +42,15 @@ const routes = [
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
-    // НОВЫЙ МАРШРУТ для страницы статьи
-    path: '/article/:id',
-    name: 'article',
-    component: Article,
+    path: '/reglamenty',
+    name: 'reglamenty',
+    component: Reglamenty,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/faq',
+    name: 'faq',
+    component: FAQ,
     meta: { requiresAuth: true }
   },
   {

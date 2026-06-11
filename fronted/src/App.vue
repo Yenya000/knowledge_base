@@ -12,10 +12,10 @@
         </RouterLink>
 
         <nav class="hidden md:flex gap-obl-8">
-          <RouterLink to="/" class="text-sm text-obl-accent">База знаний</RouterLink>
-          <RouterLink to="/" class="text-sm text-obl-muted hover:text-obl-primary transition-all duration-200">Регламенты</RouterLink>
-          <RouterLink to="/" class="text-sm text-obl-muted hover:text-obl-primary transition-all duration-200">FAQ</RouterLink>
-          <RouterLink to="/" class="text-sm text-obl-muted hover:text-obl-primary transition-all duration-200">Шаблоны</RouterLink>
+          <RouterLink to="/" class="text-sm transition-all duration-200" :class="isActiveSection('/') ? 'text-obl-accent' : 'text-obl-muted hover:text-obl-primary'">База знаний</RouterLink>
+          <RouterLink to="/reglamenty" class="text-sm transition-all duration-200" :class="isActiveSection('/reglamenty') ? 'text-obl-accent' : 'text-obl-muted hover:text-obl-primary'">Регламенты</RouterLink>
+          <RouterLink to="/faq" class="text-sm transition-all duration-200" :class="isActiveSection('/faq') ? 'text-obl-accent' : 'text-obl-muted hover:text-obl-primary'">FAQ</RouterLink>
+          <RouterLink to="/" class="text-sm transition-all duration-200" :class="isActiveSection('/templates') ? 'text-obl-accent' : 'text-obl-muted hover:text-obl-primary'">Шаблоны</RouterLink>
         </nav>
 
         <div class="flex items-center gap-obl-3">
@@ -44,10 +44,10 @@
       style="background: var(--bg-nav); border-bottom: 1px solid var(--border-subtle)"
     >
       <nav class="flex flex-col px-6 py-4 gap-4">
-        <RouterLink to="/" class="text-sm" @click="mobileMenuOpen = false">База знаний</RouterLink>
-        <RouterLink to="/" class="text-sm text-obl-muted" @click="mobileMenuOpen = false">Регламенты</RouterLink>
-        <RouterLink to="/" class="text-sm text-obl-muted" @click="mobileMenuOpen = false">FAQ</RouterLink>
-        <RouterLink to="/" class="text-sm text-obl-muted" @click="mobileMenuOpen = false">Шаблоны</RouterLink>
+        <RouterLink to="/" class="text-sm transition-all duration-200" :class="isActiveSection('/') ? 'text-obl-accent' : 'text-obl-muted'" @click="mobileMenuOpen = false">База знаний</RouterLink>
+        <RouterLink to="/reglamenty" class="text-sm transition-all duration-200" :class="isActiveSection('/reglamenty') ? 'text-obl-accent' : 'text-obl-muted'" @click="mobileMenuOpen = false">Регламенты</RouterLink>
+        <RouterLink to="/faq" class="text-sm transition-all duration-200" :class="isActiveSection('/faq') ? 'text-obl-accent' : 'text-obl-muted'" @click="mobileMenuOpen = false">FAQ</RouterLink>
+        <RouterLink to="/" class="text-sm transition-all duration-200" :class="isActiveSection('/templates') ? 'text-obl-accent' : 'text-obl-muted'" @click="mobileMenuOpen = false">Шаблоны</RouterLink>
         <div class="pt-2 border-t border-obl-border-subtle flex gap-3">
           <button v-if="isLoggedIn" @click="logout" class="btn btn-ghost btn-sm">
             Выйти
@@ -96,6 +96,11 @@ watch(
     mobileMenuOpen.value = false
   }
 )
+
+const isActiveSection = (section: string) => {
+  if (section === '/') return route.path === '/' || route.path.startsWith('/article')
+  return route.path === section
+}
 
 const logout = () => {
   localStorage.removeItem('token')

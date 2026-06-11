@@ -80,6 +80,8 @@ const categories = ref(['IT', 'HR', 'Финансы', 'Маркетинг'])
 const searchQuery = ref('')
 const selectedCategory = ref('')
 const loading = ref(true)
+const recentArticles = ref([])
+const recentLoading = ref(false)
 
 onMounted(async () => {
   try {
@@ -105,6 +107,10 @@ const filteredArticles = computed(() => {
 const recentCount = computed(() => {
   const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000
   return articles.value.filter(a => new Date(a.updated_at).getTime() > weekAgo).length
+})
+
+onMounted(() => {
+  fetchArticles()
 })
 
 function timeAgo(dateStr) {
