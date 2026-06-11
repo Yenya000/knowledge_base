@@ -1,14 +1,10 @@
-<!-- 
-  АВТОР: Мирук Анна (Team Lead / Frontend)
-  ЗАДАЧА: Страница отдельной статьи /article/:id
-  ИЗМЕНЕНИЯ: НОВЫЙ ФАЙЛ - создан с нуля
--->
+
 
 <template>
   <div class="min-h-screen bg-obl-base text-obl-primary font-sans antialiased">
     <div class="max-w-4xl mx-auto px-obl-6 py-obl-8">
       
-      <!-- ХЛЕБНЫЕ КРОШКИ (НОВЫЙ БЛОК - пункт 4 ТЗ) -->
+      <!-- ХЛЕБНЫЕ КРОШКИ (пункт 4) -->
       <nav class="flex items-center gap-obl-2 text-sm font-mono mb-obl-6 flex-wrap">
         <router-link to="/" class="text-obl-muted hover:text-obl-accent transition-colors duration-200">
           Главная
@@ -26,13 +22,13 @@
         <span class="text-obl-accent truncate">{{ article.title || 'Загрузка...' }}</span>
       </nav>
 
-      <!-- СОСТОЯНИЕ ЗАГРУЗКИ (НОВЫЙ БЛОК) -->
+      <!-- СОСТОЯНИЕ ЗАГРУЗКИ -->
       <div v-if="loading" class="card text-center py-obl-12">
         <div class="loading-spinner mx-auto mb-obl-4"></div>
         <p class="text-obl-muted font-mono text-sm">Загрузка статьи...</p>
       </div>
 
-      <!-- СОСТОЯНИЕ ОШИБКИ (НОВЫЙ БЛОК) -->
+      <!-- СОСТОЯНИЕ ОШИБКИ -->
       <div v-else-if="error" class="card border-red-500/40 bg-red-900/10 text-center py-obl-12">
         <div class="text-red-400 text-4xl mb-obl-4">⚠️</div>
         <p class="text-red-400 font-mono text-sm">{{ error }}</p>
@@ -41,7 +37,7 @@
         </button>
       </div>
 
-      <!-- СОДЕРЖИМОЕ СТАТЬИ (НОВЫЙ БЛОК) -->
+      <!-- СОДЕРЖИМОЕ СТАТЬИ -->
       <article v-else class="card hover:border-obl-border-default transition-all duration-300">
         
         <!-- Верхняя панель: категория + просмотры -->
@@ -51,6 +47,7 @@
           </span>
           
           <div class="flex items-center gap-obl-3 text-obl-muted font-mono text-xs">
+            <!-- Иконка просмотров -->
             <div class="flex items-center gap-obl-1">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
@@ -70,6 +67,7 @@
 
         <!-- МЕТА-ИНФОРМАЦИЯ: автор и даты -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-obl-4 pb-obl-6 mb-obl-6 border-b border-obl-border-subtle">
+          <!-- Блок автора -->
           <div class="flex items-center gap-obl-3">
             <div class="w-10 h-10 rounded-full bg-obl-elevated border border-obl-border-default flex items-center justify-center">
               <span class="text-obl-accent font-mono text-sm font-bold">
@@ -84,6 +82,7 @@
             </div>
           </div>
           
+          <!-- Дата обновления (если отличается) -->
           <div v-if="article.updated_at && article.updated_at !== article.created_at" 
                class="flex items-center gap-obl-2 text-xs font-mono text-obl-muted bg-obl-elevated/30 px-obl-3 py-obl-1 rounded-obl-pill">
             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,10 +93,21 @@
           </div>
         </div>
 
-        <!-- ТЕЛО СТАТЬИ -->
+        <!-- ТЕЛО СТАТЬИ с форматированием -->
         <div class="prose prose-invert max-w-none">
           <div class="whitespace-pre-wrap text-obl-secondary leading-relaxed font-sans">
             {{ article.content }}
+          </div>
+        </div>
+
+        <!-- ТЕГИ (заглушка для будущего, пункт 3.4 ТЗ) -->
+        <div v-if="article.tags && article.tags.length" class="mt-obl-8 pt-obl-6 border-t border-obl-border-subtle">
+          <h3 class="text-sm font-mono text-obl-muted mb-obl-3 uppercase tracking-wider">Теги</h3>
+          <div class="flex flex-wrap gap-obl-2">
+            <span v-for="tag in article.tags" :key="tag" 
+                  class="tag text-xs px-obl-3 py-obl-1">
+              #{{ tag }}
+            </span>
           </div>
         </div>
 
@@ -116,6 +126,20 @@
 </template>
 
 <script setup>
+/**
+ * КОМПОНЕНТ: Article.vue
+ * АВТОР: Мирук Анна
+ * ЗАДАЧА: Страница отдельной статьи
+ * 
+ * ВЫПОЛНЕННЫЕ ЗАДАЧИ:
+ * 1. GET-запрос к бэкенду /api/articles/:id
+ * 2. Отображение заголовка, содержимого, категории
+ * 3. Отображение автора, даты создания и обновления
+ * 4. Отображение количества просмотров (views)
+ * 5. Хлебные крошки (пункт 4 ТЗ)
+ * 6. Состояния загрузки и обработка ошибок
+ */
+
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import api from '../api'
@@ -125,12 +149,23 @@ const article = ref({})
 const loading = ref(true)
 const error = ref('')
 
+/**
+ * Получение инициалов автора для аватара
+ * @param {string} authorId - ID автора (например OBL-0001)
+ * @returns {string} - первые две буквы в верхнем регистре
+ */
 const getAuthorInitials = (authorId) => {
   if (!authorId) return '??'
+  // Берем первые 2 символа или заменяем
   const initials = authorId.replace('OBL-', '').substring(0, 2)
   return initials.toUpperCase()
 }
 
+/**
+ * Форматирование даты в читаемый вид
+ * @param {string} dateString - ISO строка даты
+ * @returns {string} - отформатированная дата
+ */
 const formatDate = (dateString) => {
   if (!dateString) return 'Дата неизвестна'
   const date = new Date(dateString)
@@ -141,9 +176,15 @@ const formatDate = (dateString) => {
   })
 }
 
+/**
+ * Загрузка статьи с сервера
+ * GET-запрос на /api/articles/:id
+ * Бэкенд автоматически увеличивает счетчик просмотров
+ */
 const fetchArticle = async () => {
   loading.value = true
   error.value = ''
+  
   const articleId = route.params.id
   
   try {
@@ -151,6 +192,7 @@ const fetchArticle = async () => {
     article.value = response.data
   } catch (err) {
     console.error('Ошибка загрузки статьи:', err)
+    
     if (err.response?.status === 404) {
       error.value = 'Статья не найдена'
     } else if (err.response?.status === 401) {
@@ -163,12 +205,14 @@ const fetchArticle = async () => {
   }
 }
 
+// Загружаем статью при монтировании компонента
 onMounted(() => {
   fetchArticle()
 })
 </script>
 
 <style scoped>
+/* Анимация загрузки - в стилях Oblivion */
 .loading-spinner {
   width: 32px;
   height: 32px;
