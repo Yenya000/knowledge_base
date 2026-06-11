@@ -1,4 +1,3 @@
-
 <template>
   <section class="px-4 py-8 sm:px-6 md:px-8 md:py-12 max-w-7xl mx-auto">
     <div class="mb-obl-8">
@@ -73,21 +72,16 @@
 </template>
 
 <script setup>
-
-
 import { ref, onMounted, computed } from 'vue'
 import api from '../api'
 
-// ========== ДАННЫЕ ==========
 const articles = ref([])
-const categories = ref(['IT', 'HR', 'Финансы', 'Маркетинг', 'Юридический'])
+const categories = ref(['IT', 'HR', 'Финансы', 'Маркетинг'])
 const searchQuery = ref('')
 const selectedCategory = ref('')
 const loading = ref(true)
 
-// ========== ЗАГРУЗКА СТАТЕЙ ИЗ БЭКЕНДА ==========
-const fetchArticles = async () => {
-  loading.value = true
+onMounted(async () => {
   try {
     const res = await api.get('/articles')
     articles.value = res.data
@@ -98,39 +92,8 @@ const fetchArticles = async () => {
   } finally {
     loading.value = false
   }
-}
+})
 
-// ========== НОВАЯ ФУНКЦИЯ: ЗАГРУЗКА НЕДАВНО ОБНОВЛЕННЫХ  ==========
-const fetchRecentArticles = async () => {
-  recentLoading.value = true
-  try {
-    const res = await api.get('/articles/recent')
-    recentArticles.value = res.data.slice(0, 5)
-  } catch (e) {
-    console.error('Ошибка загрузки недавно обновленных статей:', e)
-    recentArticles.value = []
-  } finally {
-    recentLoading.value = false
-  }
-}
-
-// ========== НОВАЯ ФУНКЦИЯ: ФОРМАТИРОВАНИЕ ОТНОСИТЕЛЬНОЙ ДАТЫ ==========
-const formatRelativeDate = (dateString) => {
-  if (!dateString) return 'Дата неизвестна'
-  
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24))
-  
-  if (diffDays === 0) return 'сегодня'
-  if (diffDays === 1) return 'вчера'
-  if (diffDays < 7) return `${diffDays} дня назад`
-  if (diffDays < 14) return 'неделю назад'
-  
-  return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
-}
-
-// ========== ФИЛЬТРАЦИЯ СТАТЕЙ ==========
 const filteredArticles = computed(() => {
   return articles.value.filter(a => {
     const matchesCat = !selectedCategory.value || a.category_name === selectedCategory.value
