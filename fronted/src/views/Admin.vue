@@ -28,6 +28,7 @@
             + Добавить сотрудника
           </button>
         </div>
+      </div>
 
         <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
           <table class="w-full text-left border-collapse">
@@ -158,10 +159,7 @@
       </div>
     </div>
     </Transition>
-
-  </div>
 </template>
-
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { RouterLink } from 'vue-router'
