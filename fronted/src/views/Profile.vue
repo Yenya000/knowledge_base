@@ -219,7 +219,7 @@
                 <th class="pb-obl-3 cursor-pointer" style="color: var(--text-muted); font-size: 11px;" @click="toggleUserSort('email')">Email <span v-if="userSortField === 'email'">{{ userSortOrder === 'asc' ? '↑' : '↓' }}</span></th>
                 <th class="pb-obl-3 cursor-pointer" style="color: var(--text-muted); font-size: 11px;" @click="toggleUserSort('role')">Роль <span v-if="userSortField === 'role'">{{ userSortOrder === 'asc' ? '↑' : '↓' }}</span></th>
                 <th class="pb-obl-3 text-right pr-obl-2" style="color: var(--text-muted); font-size: 11px;">Действия</th>
-              <tr>
+              </tr>
             </thead>
             <tbody>
               <tr v-for="user in sortedUsers" :key="user.id" class="hover:bg-obl-elevated/40 transition-colors">

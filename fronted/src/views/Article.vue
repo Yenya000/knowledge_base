@@ -152,7 +152,7 @@ const downloadPDF = async () => {
 
 const downloadWord = async () => {
   try {
-    const res = await api.get(`/articles/${route.params.id}/export/word`, { responseType: 'blob' })
+    const res = await api.get(`/articles/${route.params.id}/export/docx`, { responseType: 'blob' })
     const url = URL.createObjectURL(new Blob([res.data]))
     const a = document.createElement('a')
     a.href = url
