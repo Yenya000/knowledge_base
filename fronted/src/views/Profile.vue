@@ -60,18 +60,39 @@
     <!-- ===================== MAIN ===================== -->
     <main class="flex-1 px-4 py-6 sm:px-6 md:px-8 md:py-8 min-w-0">
 
-      <div class="md:hidden flex items-center gap-4 mb-6 pb-6" style="border-bottom: 0.5px solid var(--border-subtle);">
-        <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0"
-             style="background: var(--bg-elevated); border: 1px solid var(--border-default); color: var(--accent); font-family: var(--font-mono);">
-          {{ initials }}
+      <div class="md:hidden mb-6 pb-6" style="border-bottom: 0.5px solid var(--border-subtle);">
+        <!-- Строка 1: аватар + имя + выйти -->
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0"
+               style="background: var(--bg-elevated); border: 1px solid var(--border-default); color: var(--accent); font-family: var(--font-mono);">
+            {{ initials }}
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-sm font-bold truncate" style="color: var(--text-primary);">{{ userName }}</p>
+            <p class="text-[10px] uppercase tracking-widest" style="font-family: var(--font-mono); color: var(--text-muted);">{{ userRoleText }} · {{ userData.employee_id }}</p>
+          </div>
+          <button @click="handleLogout" class="btn btn-subtle btn-sm flex-shrink-0">Выйти</button>
         </div>
-        <div class="min-w-0">
-          <p class="text-sm font-bold truncate" style="color: var(--text-primary);">{{ userName }}</p>
-          <p class="text-[10px] uppercase tracking-widest" style="font-family: var(--font-mono); color: var(--text-muted);">{{ userRoleText }} · {{ userData.employee_id }}</p>
+        <!-- Строка 2: навигация (только для admin/editor) -->
+        <div v-if="userRole === 'admin' || userRole === 'editor'" class="flex gap-2 flex-wrap">
+          <button
+            @click="activeSection = 'profile'"
+            class="btn btn-sm"
+            :class="activeSection === 'profile' || activeSection === 'favorites' ? 'btn-primary' : 'btn-subtle'"
+          >Профиль</button>
+          <button
+            v-if="userRole === 'admin' || userRole === 'editor'"
+            @click="activeSection = 'articles'"
+            class="btn btn-sm"
+            :class="activeSection === 'articles' ? 'btn-primary' : 'btn-subtle'"
+          >Статьи</button>
+          <button
+            v-if="userRole === 'admin'"
+            @click="activeSection = 'employees'"
+            class="btn btn-sm"
+            :class="activeSection === 'employees' ? 'btn-primary' : 'btn-subtle'"
+          >Сотрудники</button>
         </div>
-        <button v-if="userRole === 'admin' || userRole === 'editor'" @click="activeSection = 'articles'" class="btn btn-subtle btn-sm ml-auto flex-shrink-0">Статьи</button>
-        <button v-if="userRole === 'admin'" @click="activeSection = 'employees'" class="btn btn-ghost btn-sm flex-shrink-0">Сотрудники</button>
-        <button @click="handleLogout" class="btn btn-subtle btn-sm flex-shrink-0" :class="(userRole === 'admin' || userRole === 'editor') ? '' : 'ml-auto'">Выйти</button>
       </div>
 
       <!-- ========== СЕКЦИЯ: УЧЁТНАЯ ЗАПИСЬ ========== -->
@@ -370,7 +391,7 @@ const navItems = [{ id: 'profile', label: 'Мой профиль' }, { id: 'favo
 
 const loadUserData = async () => {
   try {
-    const res = await api.get('/me')
+    const res = await api.get('/profile')
     userData.value = res.data
     localStorage.setItem('userRole', res.data.role)
   } catch (e) {
