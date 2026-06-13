@@ -4,7 +4,7 @@ const db = require('../db');
 const PDFDocument = require('pdfkit');
 const { Document, Packer, Paragraph, TextRun, HeadingLevel } = require('docx');
 
-// Экспорт в PDF
+// ========== PDF ==========
 router.get('/:id/export/pdf', async (req, res) => {
     const { id } = req.params;
 
@@ -22,16 +22,28 @@ router.get('/:id/export/pdf', async (req, res) => {
 
         const article = result.rows[0];
 
-        const doc = new PDFDocument();
-        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Type', 'application/pdf; charset=utf-8');
         res.setHeader('Content-Disposition', `attachment; filename="article_${article.id}.pdf"`);
 
+        const doc = new PDFDocument({
+            font: 'Helvetica',  
+            lang: 'ru',
+            autoFirstPage: true
+        });
+
         doc.pipe(res);
+
+        // Заголовок
         doc.fontSize(20).text(article.title, { align: 'center' });
         doc.moveDown();
+
+        // Категория
         doc.fontSize(12).text(`Категория: ${article.category_name || 'Без категории'}`);
         doc.moveDown();
+
+        // Содержимое
         doc.fontSize(12).text(article.content || '');
+
         doc.end();
 
     } catch (err) {
@@ -40,7 +52,7 @@ router.get('/:id/export/pdf', async (req, res) => {
     }
 });
 
-// Экспорт в Word (DOCX)
+// ========== Word (DOCX) ==========
 router.get('/:id/export/docx', async (req, res) => {
     const { id } = req.params;
 
@@ -73,15 +85,20 @@ router.get('/:id/export/docx', async (req, res) => {
                     }),
                     new Paragraph({ text: '' }),
                     new Paragraph({
-                        text: article.content || '',
-                        alignment: 'left'
+                        children: [
+                            new TextRun({
+                                text: article.content || '',
+                                font: "Arial",
+                                size: 24
+                            })
+                        ]
                     })
                 ]
             }]
         });
 
         const buffer = await Packer.toBuffer(doc);
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document; charset=utf-8');
         res.setHeader('Content-Disposition', `attachment; filename="article_${article.id}.docx"`);
         res.send(buffer);
 
