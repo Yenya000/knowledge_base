@@ -109,9 +109,6 @@ const recentCount = computed(() => {
   return articles.value.filter(a => new Date(a.updated_at).getTime() > weekAgo).length
 })
 
-onMounted(() => {
-  fetchArticles()
-})
 
 function timeAgo(dateStr) {
   if (!dateStr) return 'давно'

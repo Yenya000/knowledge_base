@@ -102,7 +102,7 @@ app.post('/api/login', async (req, res) => {
 app.get('/api/profile', authMiddleware, async (req, res) => {
     try {
         const result = await db.query(
-            'SELECT employee_id, role, created_at FROM users WHERE id = $1',
+            'SELECT employee_id, role, first_name, last_name, email, created_at FROM users WHERE id = $1',
             [req.user.id]
         );
 
