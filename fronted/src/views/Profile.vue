@@ -253,6 +253,8 @@
                     <button @click="changeRole(user.id, 'admin')" :disabled="user.role === 'admin'" class="btn btn-ghost btn-sm text-[10px]">Admin</button>
                     <button @click="changeRole(user.id, 'editor')" :disabled="user.role === 'editor'" class="btn btn-subtle btn-sm text-[10px]">Editor</button>
                     <button @click="changeRole(user.id, 'user')" :disabled="user.role === 'user'" class="btn btn-subtle btn-sm text-[10px]">User</button>
+                    <!-- 👇 НОВАЯ КНОПКА УДАЛЕНИЯ -->
+                    <button @click="confirmDeleteUser(user)" class="btn btn-subtle btn-sm text-[10px]" style="color: #e05252;">✕ Уд.</button>
                   </div>
                 </td>
               </tr>
@@ -279,13 +281,35 @@
           </div>
 
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-base font-semibold" style="color: var(--text-primary);">Избранное</h3>
-            <button class="btn btn-subtle btn-sm">Смотреть все</button>
-          </div>
-          <div class="flex flex-col gap-2">
-            <div v-for="fav in favorites" :key="fav.id" class="flex items-center gap-3 px-4 py-3 rounded cursor-pointer transition-all duration-150" style="border: 1px solid var(--border-subtle); background: var(--bg-surface);">
-              <span class="text-sm" style="color: var(--text-secondary);">{{ fav.title }}</span>
-            </div>
+  <h3 class="text-base font-semibold" style="color: var(--text-primary);">Избранное</h3>
+  <button @click="loadFavorites" class="btn btn-subtle btn-sm">Обновить</button>
+</div>
+
+<div v-if="favoritesLoading" class="text-center py-4">
+  <div class="loading-spinner mx-auto mb-2"></div>
+  <p class="text-xs text-obl-muted font-mono">Загрузка...</p>
+</div>
+
+<div v-else-if="favoritesList.length === 0" class="text-center py-8">
+  <p class="text-obl-muted font-mono">Нет избранных статей</p>
+  <p class="text-xs text-obl-faint mt-2">Нажмите ★ на странице статьи, чтобы добавить</p>
+</div>
+
+          <div v-else class="flex flex-col gap-2">
+            <router-link 
+              v-for="fav in favoritesList" 
+              :key="fav.id"
+              :to="`/article/${fav.id}`"
+              class="flex items-center justify-between gap-3 px-4 py-3 rounded cursor-pointer transition-all duration-150"
+              style="border: 1px solid var(--border-subtle); background: var(--bg-surface);">
+              <div class="flex-1 min-w-0">
+                <div class="text-[10px] font-mono text-obl-accent uppercase tracking-widest mb-1">
+                  {{ fav.category_name || 'Без категории' }}
+                </div>
+                <span class="text-sm truncate block" style="color: var(--text-secondary);">{{ fav.title }}</span>
+              </div>
+              <button @click.prevent="removeFromFavorites(fav.id)" class="btn btn-subtle btn-sm" style="color: #e05252;">✕ Удалить</button>
+            </router-link>
           </div>
         </section>
 
@@ -371,6 +395,31 @@
     </div>
   </div>
 
+<!-- Модальное окно подтверждения удаления сотрудника -->
+  <div v-if="showDeleteUserConfirm" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" @click.self="closeDeleteUserConfirm">
+    <div class="bg-obl-surface border border-obl-border-default rounded-obl-lg p-obl-6 w-full max-w-md mx-obl-4">
+      <div class="flex justify-between items-center mb-obl-6">
+        <h3 class="text-lg font-bold" style="color: var(--text-primary);">Удаление сотрудника</h3>
+        <button @click="closeDeleteUserConfirm" class="text-obl-muted hover:text-obl-accent transition-colors">✕</button>
+      </div>
+      <div class="text-center">
+        <div class="text-red-400 text-4xl mb-obl-4">⚠️</div>
+        <p class="text-obl-primary text-sm mb-obl-2">
+          Вы действительно хотите удалить сотрудника?
+        </p>
+        <p class="text-obl-accent font-mono text-sm mb-obl-6">
+          {{ userToDelete?.first_name }} {{ userToDelete?.last_name }} ({{ userToDelete?.employee_id }})
+        </p>
+        <p class="text-obl-muted text-xs mb-obl-6">Это действие нельзя отменить.</p>
+        <div class="flex gap-obl-3 justify-end">
+          <button @click="closeDeleteUserConfirm" class="btn btn-subtle">Отмена</button>
+          <button @click="deleteUser" class="btn btn-primary bg-red-600 hover:bg-red-700" :disabled="deleteUserLoading">
+            {{ deleteUserLoading ? 'Удаление...' : 'Удалить' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -381,6 +430,7 @@ import api from '../api'
 const router = useRouter()
 const activeSection = ref('profile')
 
+// ========== ДАННЫЕ ПОЛЬЗОВАТЕЛЯ ==========
 const userData = ref({ first_name: '', last_name: '', employee_id: '', email: '', role: '' })
 const userRole = computed(() => userData.value.role || localStorage.getItem('userRole') || 'user')
 const userName = computed(() => `${userData.value.first_name || ''} ${userData.value.last_name || ''}`.trim() || 'Пользователь')
@@ -399,6 +449,7 @@ const loadUserData = async () => {
   }
 }
 
+// ========== УПРАВЛЕНИЕ СТАТЬЯМИ ==========
 const categoryToId = { 'IT': 2, 'HR': 1, 'Финансы': 3, 'Маркетинг': 4 }
 const idToCategory = { 1: 'HR', 2: 'IT', 3: 'Финансы', 4: 'Маркетинг' }
 
@@ -481,6 +532,7 @@ const deleteArticle = async () => {
   catch (e) { alert('Ошибка: ' + (e.response?.data?.error || 'ошибка сервера')) }
 }
 
+// ========== УПРАВЛЕНИЕ СОТРУДНИКАМИ ==========
 const usersList = ref([])
 const usersLoading = ref(true)
 const userSortField = ref('employee_id')
@@ -488,6 +540,9 @@ const userSortOrder = ref('asc')
 const showAddUserModal = ref(false)
 const addUserLoading = ref(false)
 const newUser = ref({ employee_id: '', first_name: '', last_name: '', email: '', password: '', role: 'user' })
+const showDeleteUserConfirm = ref(false)
+const userToDelete = ref(null)
+const deleteUserLoading = ref(false)
 
 const loadUsers = async () => {
   usersLoading.value = true
@@ -517,6 +572,7 @@ const changeRole = async (userId, newRole) => {
 
 const openAddUserModal = () => { newUser.value = { employee_id: '', first_name: '', last_name: '', email: '', password: '', role: 'user' }; showAddUserModal.value = true }
 const closeAddUserModal = () => { showAddUserModal.value = false }
+
 const addUser = async () => {
   addUserLoading.value = true
   try {
@@ -526,31 +582,182 @@ const addUser = async () => {
   finally { addUserLoading.value = false }
 }
 
-const recentActivity = ref([
-  { title: 'Настройка рабочего окружения', action: 'Просмотрено', time: '2 дня назад', cat: 'IT' },
-  { title: 'Регламент отпусков и больничных', action: 'Просмотрено', time: '3 дня назад', cat: 'HR' },
-  { title: 'Гайдлайн бренда Oblivione', action: 'Отредактировано', time: '1 неделю назад', cat: 'Маркетинг' },
-])
+const confirmDeleteUser = (user) => {
+  if (user.employee_id === 'OBL-0001') { alert('Нельзя удалить главного администратора!'); return }
+  if (user.id === userData.value.id) { alert('Нельзя удалить самого себя'); return }
+  userToDelete.value = user
+  showDeleteUserConfirm.value = true
+}
 
-const favorites = ref([
-  { id: 1, title: 'Настройка рабочего окружения' },
-  { id: 2, title: 'Регламент отпусков и больничных' },
-  { id: 3, title: 'Структура команды разработки' },
-])
+const closeDeleteUserConfirm = () => { showDeleteUserConfirm.value = false; userToDelete.value = null }
 
+const deleteUser = async () => {
+  if (!userToDelete.value) return
+  deleteUserLoading.value = true
+  try {
+    await api.delete(`/users/${userToDelete.value.id}`)
+    alert('Сотрудник удалён')
+    closeDeleteUserConfirm()
+    loadUsers()
+  } catch (e) {
+    alert('Ошибка: ' + (e.response?.data?.error || 'ошибка сервера'))
+  } finally {
+    deleteUserLoading.value = false
+  }
+}
+
+// ========== ИЗБРАННОЕ ==========
+const favoritesList = ref([])
+const favoritesLoading = ref(false)
+
+const loadFavorites = async () => {
+  favoritesLoading.value = true
+  try {
+    const res = await api.get('/favorites')
+    favoritesList.value = res.data
+  } catch (e) {
+    console.error('Ошибка загрузки избранного:', e)
+    favoritesList.value = []
+  } finally {
+    favoritesLoading.value = false
+  }
+}
+
+const removeFromFavorites = async (articleId) => {
+  try {
+    await api.delete(`/favorites/${articleId}`)
+    await loadFavorites()
+    alert('Статья удалена из избранного')
+  } catch (e) {
+    alert('Ошибка: ' + (e.response?.data?.error || 'не удалось удалить'))
+  }
+}
+
+const goToArticle = (id) => {
+  router.push(`/article/${id}`)
+}
+
+// ========== АКТИВНОСТЬ ==========
+const recentActivity = ref([])
+
+const loadRecentActivity = async () => {
+  try {
+    const res = await api.get('/articles/recent')
+    recentActivity.value = res.data.slice(0, 3).map(article => ({
+      title: article.title,
+      action: 'Просмотрено',
+      time: formatRelativeDate(article.updated_at),
+      cat: article.category_name || 'Общее'
+    }))
+  } catch (e) {
+    console.error('Ошибка загрузки активности:', e)
+    recentActivity.value = []
+  }
+}
+
+const formatRelativeDate = (dateString) => {
+  if (!dateString) return 'давно'
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24))
+  if (diffDays === 0) return 'сегодня'
+  if (diffDays === 1) return 'вчера'
+  if (diffDays < 7) return `${diffDays} дня назад`
+  if (diffDays < 14) return 'неделю назад'
+  return date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' })
+}
+
+// ========== ПРЕДЛОЖЕНИЯ И ЖАЛОБЫ ==========
 const showSuggestion = ref(false)
 const showComplaint = ref(false)
 const suggestionText = ref('')
 const complaintText = ref('')
+const proposalsList = ref([])
+const proposalsLoading = ref(false)
 
-const submitSuggestion = () => { suggestionText.value = ''; showSuggestion.value = false }
-const submitComplaint = () => { complaintText.value = ''; showComplaint.value = false }
-const handleLogout = () => { localStorage.removeItem('token'); localStorage.removeItem('userRole'); router.push('/login') }
+const submitSuggestion = async () => {
+  if (!suggestionText.value.trim()) {
+    alert('Введите текст предложения')
+    return
+  }
+  try {
+    await api.post('/proposals', {
+      title: 'Предложение от ' + userData.value.employee_id,
+      content: suggestionText.value,
+      category_id: 1
+    })
+    alert('Спасибо за предложение!')
+    suggestionText.value = ''
+    showSuggestion.value = false
+  } catch (e) {
+    alert('Ошибка: ' + (e.response?.data?.error || 'не удалось отправить'))
+  }
+}
 
+const submitComplaint = async () => {
+  if (!complaintText.value.trim()) {
+    alert('Введите текст жалобы')
+    return
+  }
+  try {
+    await api.post('/complaints', {
+      text: complaintText.value
+    })
+    alert('Жалоба отправлена анонимно')
+    complaintText.value = ''
+    showComplaint.value = false
+  } catch (e) {
+    alert('Ошибка: ' + (e.response?.data?.error || 'не удалось отправить'))
+  }
+}
+
+const loadProposals = async () => {
+  proposalsLoading.value = true
+  try {
+    const res = await api.get('/proposals/my')
+    proposalsList.value = res.data
+  } catch (e) {
+    console.error('Ошибка загрузки предложений:', e)
+    proposalsList.value = []
+  } finally {
+    proposalsLoading.value = false
+  }
+}
+
+const getStatusText = (status) => {
+  const map = {
+    pending: 'На рассмотрении',
+    in_progress: 'В работе',
+    approved: 'Принято ✅',
+    rejected: 'Отклонено ❌'
+  }
+  return map[status] || status
+}
+
+const getStatusClass = (status) => {
+  const map = {
+    pending: 'text-ob-accent border-ob-accent',
+    in_progress: 'text-blue-400 border-blue-400',
+    approved: 'text-green-400 border-green-400',
+    rejected: 'text-red-400 border-red-400'
+  }
+  return map[status] || ''
+}
+
+// ========== ВЫХОД ==========
+const handleLogout = () => {
+  localStorage.removeItem('token')
+  localStorage.removeItem('userRole')
+  router.push('/login')
+}
+
+// ========== ЗАГРУЗКА ПРИ МОНТИРОВАНИИ ==========
 onMounted(() => {
   loadUserData()
   loadArticles()
+  loadRecentActivity()
   if (userRole.value === 'admin') loadUsers()
+  loadFavorites()
 })
 </script>
 

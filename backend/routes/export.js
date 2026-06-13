@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const PDFDocument = require('pdfkit');
+const fs = require('fs');
 const { Document, Packer, Paragraph, TextRun, HeadingLevel } = require('docx');
 
-// ========== PDF ==========
+// ========== PDF с поддержкой кириллицы ==========
 router.get('/:id/export/pdf', async (req, res) => {
     const { id } = req.params;
 
@@ -22,28 +23,22 @@ router.get('/:id/export/pdf', async (req, res) => {
 
         const article = result.rows[0];
 
-        res.setHeader('Content-Type', 'application/pdf; charset=utf-8');
+        res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="article_${article.id}.pdf"`);
 
-        const doc = new PDFDocument({
-            font: 'Helvetica',  
-            lang: 'ru',
-            autoFirstPage: true
-        });
-
+        const doc = new PDFDocument();
         doc.pipe(res);
 
-        // Заголовок
+        // Регистрируем шрифт с поддержкой кириллицы
+        // Путь к шрифту: backend/fonts/Arial.ttf
+        doc.registerFont('Arial', 'fonts/Arial.ttf');
+        doc.font('Arial');
+
         doc.fontSize(20).text(article.title, { align: 'center' });
         doc.moveDown();
-
-        // Категория
         doc.fontSize(12).text(`Категория: ${article.category_name || 'Без категории'}`);
         doc.moveDown();
-
-        // Содержимое
         doc.fontSize(12).text(article.content || '');
-
         doc.end();
 
     } catch (err) {
