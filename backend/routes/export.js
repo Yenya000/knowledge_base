@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 const PDFDocument = require('pdfkit');
+const fs = require('fs');
 const { Document, Packer, Paragraph, TextRun, HeadingLevel } = require('docx');
 
-// Экспорт в PDF
+// ========== PDF с поддержкой кириллицы ==========
 router.get('/:id/export/pdf', async (req, res) => {
     const { id } = req.params;
 
@@ -22,11 +23,17 @@ router.get('/:id/export/pdf', async (req, res) => {
 
         const article = result.rows[0];
 
-        const doc = new PDFDocument();
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="article_${article.id}.pdf"`);
 
+        const doc = new PDFDocument();
         doc.pipe(res);
+
+        // Регистрируем шрифт с поддержкой кириллицы
+        // Путь к шрифту (скачай Arial.ttf и положи в папку backend/fonts/)
+        doc.registerFont('Arial', 'fonts/Arial.ttf');
+        doc.font('Arial');
+
         doc.fontSize(20).text(article.title, { align: 'center' });
         doc.moveDown();
         doc.fontSize(12).text(`Категория: ${article.category_name || 'Без категории'}`);
@@ -40,7 +47,7 @@ router.get('/:id/export/pdf', async (req, res) => {
     }
 });
 
-// Экспорт в Word (DOCX)
+// ========== Word (DOCX) ==========
 router.get('/:id/export/docx', async (req, res) => {
     const { id } = req.params;
 
@@ -73,8 +80,13 @@ router.get('/:id/export/docx', async (req, res) => {
                     }),
                     new Paragraph({ text: '' }),
                     new Paragraph({
-                        text: article.content || '',
-                        alignment: 'left'
+                        children: [
+                            new TextRun({
+                                text: article.content || '',
+                                font: "Arial",
+                                size: 24
+                            })
+                        ]
                     })
                 ]
             }]

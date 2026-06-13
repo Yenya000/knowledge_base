@@ -8,6 +8,8 @@ import Profile from '../views/Profile.vue'
 import Article from '../views/Article.vue'
 import Reglamenty from '../views/Reglamenty.vue'
 import FAQ from '../views/FAQ.vue'
+import Templates from '../views/Templates.vue'
+
 
 
 const routes = [
@@ -58,6 +60,12 @@ const routes = [
     name: 'admin',
     component: Admin,
     meta: { requiresAuth: true, requiresAdmin: true } // Защита админки
+  },
+  {
+    path: '/templates',
+    name: 'templates',
+    component: Templates,
+    meta: { requiresAuth: true }
   }
 ]
 

@@ -15,7 +15,7 @@
           <RouterLink to="/" class="text-sm transition-all duration-200" :class="isActiveSection('/') ? 'text-obl-accent' : 'text-obl-muted hover:text-obl-primary'">База знаний</RouterLink>
           <RouterLink to="/reglamenty" class="text-sm transition-all duration-200" :class="isActiveSection('/reglamenty') ? 'text-obl-accent' : 'text-obl-muted hover:text-obl-primary'">Регламенты</RouterLink>
           <RouterLink to="/faq" class="text-sm transition-all duration-200" :class="isActiveSection('/faq') ? 'text-obl-accent' : 'text-obl-muted hover:text-obl-primary'">FAQ</RouterLink>
-          <RouterLink to="/" class="text-sm transition-all duration-200" :class="isActiveSection('/templates') ? 'text-obl-accent' : 'text-obl-muted hover:text-obl-primary'">Шаблоны</RouterLink>
+          <RouterLink to="/templates" class="text-sm transition-all duration-200" :class="isActiveSection('/templates') ? 'text-obl-accent' : 'text-obl-muted hover:text-obl-primary'"> Шаблоны</RouterLink>
         </nav>
 
         <div class="flex items-center gap-obl-3">

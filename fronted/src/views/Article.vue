@@ -39,47 +39,62 @@
             <span class="truncate" style="color: var(--text-primary)">{{ article.title || '...' }}</span>
           </div>
           <div class="flex items-center gap-2 flex-shrink-0">
+            <button @click="toggleFavorite" class="btn btn-sm" :class="isFavorite ? 'btn-primary' : 'btn-subtle'">
+              {{ isFavorite ? '★ В избранном' : '☆ В избранное' }}
+            </button>
             <button @click="downloadPDF" class="btn btn-ghost btn-sm">↓ PDF</button>
             <button @click="downloadWord" class="btn btn-subtle btn-sm">↓ Word</button>
           </div>
         </div>
 
-        <!-- Скелетон при загрузке -->
-        <div v-if="!article.title" class="animate-pulse space-y-3 mb-6">
+        <!-- Состояние загрузки -->
+        <div v-if="loading" class="animate-pulse space-y-3 mb-6">
           <div class="h-8 rounded w-3/4" style="background: var(--bg-elevated);"></div>
           <div class="h-4 rounded w-1/2" style="background: var(--bg-elevated);"></div>
+          <div class="h-32 rounded w-full" style="background: var(--bg-elevated);"></div>
         </div>
 
-        <!-- Заголовок -->
-        <h1 v-else class="text-3xl font-extrabold leading-tight mb-4" style="letter-spacing: -0.02em;">
-          {{ article.title }}
-        </h1>
-
-        <!-- Мета -->
-        <div class="flex items-center gap-6 text-xs font-mono pb-6 mb-6"
-             style="color: var(--text-muted); border-bottom: 0.5px solid var(--border-subtle);">
-          <span>автор: {{ article.author || 'Неизвестен' }}</span>
-          <span>обновлено {{ formatDate(article.updated_at) }}</span>
-          <span>~{{ readTime }} мин. чтения</span>
+        <!-- Состояние ошибки -->
+        <div v-else-if="error" class="card border-red-500/40 bg-red-900/10 text-center py-12">
+          <div class="text-red-400 text-4xl mb-4">⚠️</div>
+          <p class="text-red-400 font-mono text-sm">{{ error }}</p>
+          <button @click="fetchArticle" class="btn btn-primary mt-6">Попробовать снова</button>
         </div>
 
-        <!-- Тело статьи -->
-        <div class="article-body" v-html="article.content || 'Загрузка...'"></div>
+        <!-- Содержимое статьи -->
+        <template v-else>
+          <!-- Заголовок -->
+          <h1 class="text-3xl font-extrabold leading-tight mb-4" style="letter-spacing: -0.02em;">
+            {{ article.title }}
+          </h1>
 
-        <!-- Теги -->
-        <div v-if="article.tags && article.tags.length"
-             class="flex flex-wrap gap-2 mt-8 pt-6"
-             style="border-top: 0.5px solid var(--border-subtle);">
-          <span v-for="tag in article.tags" :key="tag" class="tag">#{{ tag }}</span>
-        </div>
+          <!-- Мета -->
+          <div class="flex items-center gap-6 text-xs font-mono pb-6 mb-6"
+               style="color: var(--text-muted); border-bottom: 0.5px solid var(--border-subtle);">
+            <span>автор: {{ article.author_employee_id || 'Неизвестен' }}</span>
+            <span>обновлено {{ formatDate(article.updated_at) }}</span>
+            <span>~{{ readTime }} мин. чтения</span>
+            <span>👁️ {{ article.views || 0 }} просмотров</span>
+          </div>
 
-        <!-- Кнопка назад -->
-        <div class="mt-8">
-          <button @click="$router.back()" class="text-sm font-mono transition-all duration-200"
-                  style="color: var(--text-muted)">
-            ← Назад
-          </button>
-        </div>
+          <!-- Тело статьи -->
+          <div class="article-body" v-html="article.content || ''"></div>
+
+          <!-- Теги -->
+          <div v-if="article.tags && article.tags.length"
+               class="flex flex-wrap gap-2 mt-8 pt-6"
+               style="border-top: 0.5px solid var(--border-subtle);">
+            <span v-for="tag in article.tags" :key="tag" class="tag">#{{ tag }}</span>
+          </div>
+
+          <!-- Кнопка назад -->
+          <div class="mt-8">
+            <button @click="$router.back()" class="text-sm font-mono transition-all duration-200"
+                    style="color: var(--text-muted)">
+              ← Назад
+            </button>
+          </div>
+        </template>
 
       </main>
     </div>
@@ -94,6 +109,8 @@ import api from '../api'
 const route = useRoute()
 const article = ref({})
 const categories = ref(['IT', 'HR', 'Финансы', 'Маркетинг', 'Юридический'])
+const loading = ref(true)
+const error = ref('')
 
 const relatedArticles = ref([
   { id: 1, title: 'Онбординг' },
@@ -102,6 +119,35 @@ const relatedArticles = ref([
   { id: 4, title: 'Кодекс поведения' },
 ])
 
+// ========== ИЗБРАННОЕ ==========
+const isFavorite = ref(false)
+
+const checkFavorite = async () => {
+  try {
+    const res = await api.get('/favorites')
+    isFavorite.value = res.data.some(fav => fav.id === article.value.id)
+  } catch (e) {
+    console.error('Ошибка проверки избранного:', e)
+  }
+}
+
+const toggleFavorite = async () => {
+  try {
+    if (isFavorite.value) {
+      await api.delete(`/favorites/${article.value.id}`)
+      isFavorite.value = false
+      alert('Удалено из избранного')
+    } else {
+      await api.post(`/favorites/${article.value.id}`)
+      isFavorite.value = true
+      alert('Добавлено в избранное')
+    }
+  } catch (e) {
+    alert('Ошибка: ' + (e.response?.data?.error || 'не удалось'))
+  }
+}
+
+// ========== ФОРМАТИРОВАНИЕ ==========
 function formatDate(dateStr) {
   if (!dateStr) return '...'
   const d = new Date(dateStr)
@@ -120,22 +166,30 @@ const readTime = computed(() => {
   return Math.max(1, Math.round(words / 200))
 })
 
-onMounted(async () => {
+// ========== ЗАГРУЗКА СТАТЬИ ==========
+const fetchArticle = async () => {
+  loading.value = true
+  error.value = ''
   try {
     const res = await api.get(`/articles/${route.params.id}`)
     article.value = res.data
+    await checkFavorite()
   } catch (e) {
-    article.value = {
-      title: 'Онбординг нового сотрудника',
-      category_name: 'HR',
-      author: 'Анна М.',
-      updated_at: '4 дня назад',
-      content: '<p>Тестовое содержимое статьи...</p>',
-      tags: ['онбординг', 'hr', 'новый-сотрудник']
+    console.error('Ошибка загрузки статьи:', e)
+    if (e.response?.status === 404) {
+      error.value = 'Статья не найдена'
+    } else if (e.response?.status === 401) {
+      error.value = 'Требуется авторизация'
+    } else {
+      error.value = 'Не удалось загрузить статью. Проверьте соединение с сервером.'
     }
+    article.value = {}
+  } finally {
+    loading.value = false
   }
-})
+}
 
+// ========== ЭКСПОРТ ==========
 const downloadPDF = async () => {
   try {
     const res = await api.get(`/articles/${route.params.id}/export/pdf`, { responseType: 'blob' })
@@ -163,6 +217,10 @@ const downloadWord = async () => {
     alert('Ошибка скачивания Word')
   }
 }
+
+onMounted(() => {
+  fetchArticle()
+})
 </script>
 
 <style scoped>

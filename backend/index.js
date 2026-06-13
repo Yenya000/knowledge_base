@@ -15,20 +15,27 @@ const exportRouter = require('./routes/export');
 const favoritesRouter = require('./routes/favorites');
 const tagsRouter = require('./routes/tags');
 const commentsRouter = require('./routes/comments');
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || 'oblivion_secret_key_2026';
 
-app.use(cors());
+// ========== НАСТРОЙКА CORS ==========
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
 // ========== ПОДКЛЮЧЕНИЕ РОУТОВ ==========
 app.use('/api/articles', exportRouter);
 app.use('/api/favorites', favoritesRouter);
 app.use('/api/tags', tagsRouter);
-app.use('/api/comments', commentsRouter);   
+app.use('/api/comments', commentsRouter);
 
 // ========== РЕГИСТРАЦИЯ ==========
 app.post('/api/auth/register', async (req, res) => {
-    const { employee_id, password, role = 'user' } = req.body;
+    const { employee_id, password, role = 'user', email, first_name, last_name } = req.body;
 
     if (!employee_id || !password) {
         return res.status(400).json({ error: 'логин и пароль обязательны' });
@@ -47,10 +54,10 @@ app.post('/api/auth/register', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const result = await db.query(
-            `INSERT INTO users (employee_id, password_hash, role) 
-             VALUES ($1, $2, $3) 
+            `INSERT INTO users (employee_id, password_hash, role, email, first_name, last_name) 
+             VALUES ($1, $2, $3, $4, $5, $6) 
              RETURNING id, employee_id, role, created_at`,
-            [employee_id, hashedPassword, role]
+            [employee_id, hashedPassword, role, email || null, first_name || null, last_name || null]
         );
 
         res.status(201).json({
@@ -102,7 +109,7 @@ app.post('/api/login', async (req, res) => {
 app.get('/api/profile', authMiddleware, async (req, res) => {
     try {
         const result = await db.query(
-            'SELECT employee_id, role, first_name, last_name, email, created_at FROM users WHERE id = $1',
+            'SELECT id, employee_id, role, first_name, last_name, email, created_at FROM users WHERE id = $1',
             [req.user.id]
         );
 
@@ -125,7 +132,9 @@ app.get('/api/users', authMiddleware, async (req, res) => {
 
     try {
         const result = await db.query(
-            'SELECT id, employee_id, role, created_at FROM users ORDER BY created_at DESC'
+            `SELECT id, employee_id, first_name, last_name, email, role, created_at 
+             FROM users 
+             ORDER BY created_at DESC`
         );
         res.json(result.rows);
     } catch (error) {
@@ -172,6 +181,52 @@ app.patch('/api/users/:id/role', authMiddleware, async (req, res) => {
     }
 });
 
+// ========== УДАЛЕНИЕ СОТРУДНИКА (ТОЛЬКО АДМИНУ) ==========
+app.delete('/api/users/:id', authMiddleware, async (req, res) => {
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Доступ запрещён. Только для администраторов.' });
+    }
+
+    const { id } = req.params;
+
+    if (id === req.user.id) {
+        return res.status(400).json({ error: 'Нельзя удалить самого себя' });
+    }
+
+    const adminCheck = await db.query('SELECT employee_id FROM users WHERE id = $1', [id]);
+    if (adminCheck.rows[0]?.employee_id === 'OBL-0001') {
+        return res.status(400).json({ error: 'Нельзя удалить главного администратора' });
+    }
+
+    try {
+        const result = await db.query('DELETE FROM users WHERE id = $1 RETURNING id', [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Пользователь не найден' });
+        }
+        res.json({ message: 'Пользователь удалён' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// ========== ПОЛУЧЕНИЕ ДАННЫХ ТЕКУЩЕГО ПОЛЬЗОВАТЕЛЯ (/api/me) ==========
+app.get('/api/me', authMiddleware, async (req, res) => {
+    try {
+        const result = await db.query(
+            'SELECT id, employee_id, email, first_name, last_name, role, created_at FROM users WHERE id = $1',
+            [req.user.id]
+        );
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Пользователь не найден' });
+        }
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error('Ошибка /api/me:', err);
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
 // ========== ОСНОВНЫЕ РОУТЫ ==========
 app.use('/api/articles', articlesRouter);
 app.use('/api/categories', categoriesRouter);
@@ -181,5 +236,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`Сервер запущен на порту ${PORT}`);
+    console.log(`🚀 Сервер запущен на порту ${PORT}`);
 });
