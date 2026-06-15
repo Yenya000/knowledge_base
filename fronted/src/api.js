@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'https://knowledge-base-pbcr.onrender.com/api',
+  baseURL: 'https://oblivionbase.onrender.com/api', // <-- ЭТО САМОЕ ВАЖНОЕ
   headers: {
     'Content-Type': 'application/json'
   }
