@@ -30,7 +30,7 @@ router.get('/:id/export/pdf', async (req, res) => {
         doc.pipe(res);
 
         // Регистрируем шрифт с поддержкой кириллицы
-        // Путь к шрифту (скачай Arial.ttf и положи в папку backend/fonts/)
+        // Путь к шрифту: backend/fonts/Arial.ttf
         doc.registerFont('Arial', 'fonts/Arial.ttf');
         doc.font('Arial');
 
@@ -93,7 +93,7 @@ router.get('/:id/export/docx', async (req, res) => {
         });
 
         const buffer = await Packer.toBuffer(doc);
-        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document; charset=utf-8');
         res.setHeader('Content-Disposition', `attachment; filename="article_${article.id}.docx"`);
         res.send(buffer);
 
