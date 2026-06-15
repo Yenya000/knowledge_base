@@ -10,16 +10,16 @@ const categoriesRouter = require('./routes/categories');
 const { authMiddleware } = require('./middleware/auth');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const exportRouter = require('./routes/export');
 const favoritesRouter = require('./routes/favorites');
 const tagsRouter = require('./routes/tags');
 const commentsRouter = require('./routes/comments');
 const JWT_SECRET = process.env.JWT_SECRET || 'oblivion_secret_key_2026';
 
-// ========== НАСТРОЙКА CORS ==========
+// ========== НАСТРОЙКА CORS (ДЛЯ ПРОДАКШЕНА) ==========
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: 'https://oblivionbase.netlify.app',  // ← АДРЕС ФРОНТА НА NETLIFY
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
@@ -28,7 +28,7 @@ app.use(cors({
 app.use(express.json());
 
 // ========== ПОДКЛЮЧЕНИЕ РОУТОВ ==========
-app.use('/api/articles', exportRouter);
+app.use('/api/export', exportRouter);
 app.use('/api/favorites', favoritesRouter);
 app.use('/api/tags', tagsRouter);
 app.use('/api/comments', commentsRouter);
@@ -230,6 +230,11 @@ app.get('/api/me', authMiddleware, async (req, res) => {
 // ========== ОСНОВНЫЕ РОУТЫ ==========
 app.use('/api/articles', articlesRouter);
 app.use('/api/categories', categoriesRouter);
+
+// ========== ХЕЛС-ЧЕК ДЛЯ RENDER ==========
+app.get('/healthz', (req, res) => {
+    res.status(200).send('OK');
+});
 
 app.get('/', (req, res) => {
     res.send('Hello World');
