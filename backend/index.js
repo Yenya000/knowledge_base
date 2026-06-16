@@ -19,7 +19,10 @@ const JWT_SECRET = process.env.JWT_SECRET || 'oblivion_secret_key_2026';
 
 // ========== НАСТРОЙКА CORS (ДЛЯ ПРОДАКШЕНА) ==========
 app.use(cors({
-    origin: 'https://oblivionbase.netlify.app',  // ← АДРЕС ФРОНТА НА NETLIFY
+    origin: [
+        'https://oblivionbase.vercel.app',
+        'http://localhost:5173'
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
