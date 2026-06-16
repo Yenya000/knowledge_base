@@ -297,4 +297,108 @@ router.delete('/:id', authMiddleware, adminOrEditorMiddleware, async (req, res) 
     }
 });
 
+// ====================================================
+// ========== ЭКСПОРТ В PDF ==========
+// ====================================================
+router.get('/:id/export/pdf', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await db.query(`
+            SELECT articles.*, categories.name AS category_name
+            FROM articles
+            LEFT JOIN categories ON articles.category_id = categories.id
+            WHERE articles.id = $1
+        `, [id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Статья не найдена' });
+        }
+
+        const article = result.rows[0];
+        const PDFDocument = require('pdfkit');
+        
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="article_${article.id}.pdf"`);
+
+        const doc = new PDFDocument();
+        doc.pipe(res);
+        
+        // Если есть шрифт с кириллицей
+        try {
+            doc.registerFont('Arial', 'fonts/Arial.ttf');
+            doc.font('Arial');
+        } catch (e) {
+            // Если шрифта нет - используем стандартный
+            doc.font('Helvetica');
+        }
+        
+        doc.fontSize(20).text(article.title || 'Без названия', { align: 'center' });
+        doc.moveDown();
+        doc.fontSize(12).text(`Категория: ${article.category_name || 'Без категории'}`);
+        doc.moveDown();
+        doc.fontSize(12).text(article.content || '');
+        doc.end();
+    } catch (err) {
+        console.error('Ошибка генерации PDF:', err);
+        res.status(500).json({ error: 'Ошибка генерации PDF' });
+    }
+});
+
+// ====================================================
+// ========== ЭКСПОРТ В DOCX ==========
+// ====================================================
+router.get('/:id/export/docx', async (req, res) => {
+    const { id } = req.params;
+    try {
+        const result = await db.query(`
+            SELECT articles.*, categories.name AS category_name
+            FROM articles
+            LEFT JOIN categories ON articles.category_id = categories.id
+            WHERE articles.id = $1
+        `, [id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Статья не найдена' });
+        }
+
+        const article = result.rows[0];
+        const { Document, Packer, Paragraph, TextRun, HeadingLevel } = require('docx');
+
+        const doc = new Document({
+            sections: [{
+                properties: {},
+                children: [
+                    new Paragraph({
+                        text: article.title || 'Без названия',
+                        heading: HeadingLevel.TITLE,
+                        alignment: 'center'
+                    }),
+                    new Paragraph({
+                        text: `Категория: ${article.category_name || 'Без категории'}`,
+                        alignment: 'left'
+                    }),
+                    new Paragraph({ text: '' }),
+                    new Paragraph({
+                        children: [
+                            new TextRun({
+                                text: article.content || '',
+                                font: "Arial",
+                                size: 24
+                            })
+                        ]
+                    })
+                ]
+            }]
+        });
+
+        const buffer = await Packer.toBuffer(doc);
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        res.setHeader('Content-Disposition', `attachment; filename="article_${article.id}.docx"`);
+        res.send(buffer);
+    } catch (err) {
+        console.error('Ошибка генерации DOCX:', err);
+        res.status(500).json({ error: 'Ошибка генерации DOCX' });
+    }
+});
+
 module.exports = router;
