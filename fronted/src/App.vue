@@ -47,7 +47,7 @@
         <RouterLink to="/" class="text-sm transition-all duration-200" :class="isActiveSection('/') ? 'text-obl-accent' : 'text-obl-muted'" @click="mobileMenuOpen = false">База знаний</RouterLink>
         <RouterLink to="/reglamenty" class="text-sm transition-all duration-200" :class="isActiveSection('/reglamenty') ? 'text-obl-accent' : 'text-obl-muted'" @click="mobileMenuOpen = false">Регламенты</RouterLink>
         <RouterLink to="/faq" class="text-sm transition-all duration-200" :class="isActiveSection('/faq') ? 'text-obl-accent' : 'text-obl-muted'" @click="mobileMenuOpen = false">FAQ</RouterLink>
-        <RouterLink to="/" class="text-sm transition-all duration-200" :class="isActiveSection('/templates') ? 'text-obl-accent' : 'text-obl-muted'" @click="mobileMenuOpen = false">Шаблоны</RouterLink>
+        <RouterLink to="/templates" class="text-sm transition-all duration-200" :class="isActiveSection('/templates') ? 'text-obl-accent' : 'text-obl-muted'" @click="mobileMenuOpen = false">Шаблоны</RouterLink>
         <div class="pt-2 border-t border-obl-border-subtle flex gap-3">
           <button v-if="isLoggedIn" @click="logout" class="btn btn-ghost btn-sm">
             Выйти
