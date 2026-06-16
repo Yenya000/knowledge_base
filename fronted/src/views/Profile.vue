@@ -32,7 +32,7 @@
           :key="item.id"
           class="flex items-center gap-2 text-left px-3 py-2 rounded text-xs w-full transition-all duration-150"
           :class="activeSection === item.id ? 'nav-item-active' : 'nav-item'"
-          @click="activeSection = item.id"
+          @click="scrollToSection(item.id)"
         >
           {{ item.label }}
         </button>
@@ -280,36 +280,40 @@
             </div>
           </div>
 
-          <div class="flex items-center justify-between mb-4">
-  <h3 class="text-base font-semibold" style="color: var(--text-primary);">Избранное</h3>
-  <button @click="loadFavorites" class="btn btn-subtle btn-sm">Обновить</button>
-</div>
+          <!-- ========== ИЗБРАННОЕ ========== -->
+          <div id="favorites-section" class="mb-4">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-base font-semibold" style="color: var(--text-primary);">Избранное</h3>
+              <button @click="loadFavorites" class="btn btn-subtle btn-sm">Обновить</button>
+            </div>
 
-<div v-if="favoritesLoading" class="text-center py-4">
-  <div class="loading-spinner mx-auto mb-2"></div>
-  <p class="text-xs text-obl-muted font-mono">Загрузка...</p>
-</div>
+            <div v-if="favoritesLoading" class="text-center py-4">
+              <div class="loading-spinner mx-auto mb-2"></div>
+              <p class="text-xs text-obl-muted font-mono">Загрузка...</p>
+            </div>
 
-<div v-else-if="favoritesList.length === 0" class="text-center py-8">
-  <p class="text-obl-muted font-mono">Нет избранных статей</p>
-  <p class="text-xs text-obl-faint mt-2">Нажмите ★ на странице статьи, чтобы добавить</p>
-</div>
+            <div v-else-if="favoritesList.length === 0" class="text-center py-8">
+              <p class="text-obl-muted font-mono">Нет избранных статей</p>
+              <p class="text-xs text-obl-faint mt-2">Нажмите ★ на странице статьи, чтобы добавить</p>
+            </div>
 
-          <div v-else class="flex flex-col gap-2">
-            <router-link 
-              v-for="fav in favoritesList" 
-              :key="fav.id"
-              :to="`/article/${fav.id}`"
-              class="flex items-center justify-between gap-3 px-4 py-3 rounded cursor-pointer transition-all duration-150"
-              style="border: 1px solid var(--border-subtle); background: var(--bg-surface);">
-              <div class="flex-1 min-w-0">
-                <div class="text-[10px] font-mono text-obl-accent uppercase tracking-widest mb-1">
-                  {{ fav.category_name || 'Без категории' }}
+            <div v-else class="flex flex-col gap-2">
+              <router-link 
+                v-for="fav in favoritesList" 
+                :key="fav.id"
+                :to="`/article/${fav.id}`"
+                class="flex items-center justify-between gap-3 px-4 py-3 rounded cursor-pointer transition-all duration-150"
+                style="border: 1px solid var(--border-subtle); background: var(--bg-surface);"
+              >
+                <div class="flex-1 min-w-0">
+                  <div class="text-[10px] font-mono text-obl-accent uppercase tracking-widest mb-1">
+                    {{ fav.category_name || 'Без категории' }}
+                  </div>
+                  <span class="text-sm truncate block" style="color: var(--text-secondary);">{{ fav.title }}</span>
                 </div>
-                <span class="text-sm truncate block" style="color: var(--text-secondary);">{{ fav.title }}</span>
-              </div>
-              <button @click.prevent="removeFromFavorites(fav.id)" class="btn btn-subtle btn-sm" style="color: #e05252;">✕ Удалить</button>
-            </router-link>
+                <button @click.prevent="removeFromFavorites(fav.id)" class="btn btn-subtle btn-sm" style="color: #e05252;">✕ Удалить</button>
+              </router-link>
+            </div>
           </div>
         </section>
 
@@ -395,7 +399,7 @@
     </div>
   </div>
 
-<!-- Модальное окно подтверждения удаления сотрудника -->
+  <!-- Модальное окно подтверждения удаления сотрудника -->
   <div v-if="showDeleteUserConfirm" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" @click.self="closeDeleteUserConfirm">
     <div class="bg-obl-surface border border-obl-border-default rounded-obl-lg p-obl-6 w-full max-w-md mx-obl-4">
       <div class="flex justify-between items-center mb-obl-6">
@@ -438,6 +442,20 @@ const userRoleText = computed(() => userRole.value === 'admin' ? 'АДМИНИС
 const initials = computed(() => `${(userData.value.first_name?.[0] || '')}${(userData.value.last_name?.[0] || '')}`.toUpperCase() || 'U')
 
 const navItems = [{ id: 'profile', label: 'Мой профиль' }, { id: 'favorites', label: 'Избранное' }]
+
+// ========== СКРОЛЛ К ИЗБРАННОМУ ==========
+const scrollToSection = (sectionId) => {
+  activeSection.value = sectionId
+
+  setTimeout(() => {
+    if (sectionId === 'favorites') {
+      const element = document.getElementById('favorites-section')
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }
+  }, 100)
+}
 
 const loadUserData = async () => {
   try {
