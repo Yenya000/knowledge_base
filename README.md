@@ -10,7 +10,6 @@
 ## Ссылки на рабочий проект
 | Компонент | Ссылка |
 |-----------|--------|
-| **Frontend (Netlify)** | https://oblivionbase.netlify.app |
 | **Frontend (Vercel)** | https://oblivionbase.vercel.app |
 | **Backend API** | https://oblivionbase.onrender.com |
 
