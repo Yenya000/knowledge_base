@@ -1,7 +1,3 @@
-Отлично! Вот исправленный **README.md** с актуальными ссылками и данными. Я всё проверил по итогам нашей работы.
-
----
-
 # OBLIVION | BASE — Корпоративная база знаний
 
 ## О проекте
@@ -281,7 +277,6 @@ npm run build
 
 ## 📧 Контакты
 - Team Lead: Анна Мирук — anetmiruk@gmail.com
-- GitHub: [github.com/oblivione/knowledge-base](https://github.com/oblivione/knowledge-base)
 
 ---
 
